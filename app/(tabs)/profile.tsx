@@ -1,17 +1,19 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, StyleSheet, Button} from 'react-native';
 import React from 'react';
 import {TextInput} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 
 export default function ProfileScreen() {
-    const [username, onChangeTextU] = React.useState('testUser');
-    const [password, onChangeTextP] = React.useState('password1');
+    var username = 'testUser';
+    var password = 'password1'
+    const [newUser, onChangeTextU] = React.useState('enter new username');
+    const [newPass, onChangeTextP] = React.useState('enter new password');
     //const username = "testUser";
-    //const password = "password1";
+    const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
     return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -24,23 +26,33 @@ export default function ProfileScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome! {username}</ThemedText>
       </ThemedView>
-      <TextInput
-          style={styles.input}
-          value={"enter new username"}
-          onChangeText={onChangeTextU}
-          placeholder="enter new username"
-        />
-        <TextInput
-          style={styles.input}
-          value={"enter new password"}
-          onChangeText={onChangeTextP}
-          placeholder="enter new password"
-        />
-        <TextInput
-          style={styles.input}
-          value={"enter password to confirm"}
-          placeholder="enter password to confirm"
-        />
+      <SafeAreaProvider>
+        <SafeAreaView>
+            <TextInput
+            style={styles.input}
+            value={newUser}
+            onChangeText={onChangeTextU}
+            placeholder="enter new username"
+            />
+            <TextInput
+             style={styles.input}
+             value={newPass}
+             onChangeText={onChangeTextP}
+             placeholder="enter new password"
+            />
+            <TextInput
+             style={styles.input}
+             value={oldPass}
+             onChangeText={onChangeTextO}
+             placeholder="enter password to confirm"
+            />
+            <Button
+                title="press to confirm"
+                color='#FF0000'
+                onPress={() => username = newUser}
+            />
+        </SafeAreaView>
+      </SafeAreaProvider>
     </ParallaxScrollView>
   );
 }
@@ -63,9 +75,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
     input: {
+      color: '#808080',
       height: 40,
       margin: 12,
       borderWidth: 1,
       padding: 10,
-    },
+    }
 });
