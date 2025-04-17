@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, Dimensions, TextInput, ScrollView, TouchableOpacity } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, MapTypes } from 'react-native-maps';
 import * as Location from 'expo-location';
 import ENV from '../../config';
+import { MaterialIcons } from '@expo/vector-icons';
 
 interface DirectionsResponse {
   routes: Array<{
@@ -105,6 +106,9 @@ export default function DirectionsMapScreen() {
   const [markers, setMarkers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [distance, setDistance] = useState<string>('');
+  const [mapType, setMapType] = useState<MapTypes>('standard');
+  const [showTraffic, setShowTraffic] = useState<boolean>(false);
+  const [showUserLocation, setShowUserLocation] = useState<boolean>(true);
 
   useEffect(() => {
     (async () => {
@@ -323,6 +327,57 @@ export default function DirectionsMapScreen() {
     }
   };
 
+  const zoomIn = () => {
+    if (mapRef.current) {
+      const region = {
+        ...initialRegion,
+        latitudeDelta: initialRegion.latitudeDelta / 2,
+        longitudeDelta: initialRegion.longitudeDelta / 2,
+      };
+      mapRef.current.animateToRegion(region, 300);
+      setInitialRegion(region);
+    }
+  };
+
+  const zoomOut = () => {
+    if (mapRef.current) {
+      const region = {
+        ...initialRegion,
+        latitudeDelta: initialRegion.latitudeDelta * 2,
+        longitudeDelta: initialRegion.longitudeDelta * 2,
+      };
+      mapRef.current.animateToRegion(region, 300);
+      setInitialRegion(region);
+    }
+  };
+
+  const recenterMap = async () => {
+    try {
+      let location = await Location.getCurrentPositionAsync({});
+      const region = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      };
+
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(region, 300);
+        setInitialRegion(region);
+      }
+    } catch (error) {
+      setErrorMsg('Could not fetch location');
+    }
+  };
+
+  const toggleMapType = () => {
+    setMapType(mapType === 'standard' ? 'satellite' : 'standard');
+  };
+
+  const toggleTraffic = () => {
+    setShowTraffic(!showTraffic);
+  };
+
   return (
     <ScrollView contentContainerStyle={{ marginTop: 75, flexGrow: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -408,6 +463,12 @@ export default function DirectionsMapScreen() {
             style={{ flex: 1 }}
             provider={PROVIDER_GOOGLE}
             initialRegion={initialRegion}
+            mapType={mapType}
+            showsTraffic={showTraffic}
+            showsUserLocation={showUserLocation}
+            showsMyLocationButton={false}
+            showsCompass={false}
+            showsScale={true}
           >
             {markers.map((marker, index) => (
               <Marker
@@ -426,6 +487,31 @@ export default function DirectionsMapScreen() {
               />
             )}
           </MapView>
+
+          <View style={styles.mapControls}>
+            <TouchableOpacity style={styles.mapControlButton} onPress={zoomIn}>
+              <MaterialIcons name="add" size={24} color="#333" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.mapControlButton} onPress={zoomOut}>
+              <MaterialIcons name="remove" size={24} color="#333" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.mapControlButton} onPress={recenterMap}>
+              <MaterialIcons name="my-location" size={24} color="#333" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.mapControlButton} onPress={toggleMapType}>
+              <MaterialIcons name={mapType === 'standard' ? 'satellite' : 'map'} size={24} color="#333" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.mapControlButton, showTraffic ? styles.activeButton : null]}
+              onPress={toggleTraffic}
+            >
+              <MaterialIcons name="traffic" size={24} color={showTraffic ? "#4285F4" : "#333"} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -546,5 +632,29 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     marginTop: 8,
+  },
+
+  mapControls: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  mapControlButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  activeButton: {
+    backgroundColor: 'rgba(232, 240, 254, 0.8)',
   },
 });
