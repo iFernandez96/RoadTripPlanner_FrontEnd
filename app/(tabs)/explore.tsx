@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, Dimensions, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
-
+import ENV from '../../config';
 interface DirectionsResponse {
   routes: Array<{
     legs: Array<{
@@ -130,8 +130,7 @@ export default function DirectionsMapScreen() {
       if (waypoints.length > 0) {
         waypointsParam = '&waypoints=' + waypoints.map(wp => encodeURIComponent(wp.location)).join('|');
       }
-
-      const apiKey = 'AIzaSyDGPCkGqoECDxC0_s87c5WubT5CPrjouf4';
+      const apiKey = ENV.apiKey;
       const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${waypointsParam}&key=${apiKey}`;
 
       const response = await fetch(url);
