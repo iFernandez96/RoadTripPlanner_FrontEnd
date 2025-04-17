@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Platform } from 'react-native';
-
+import React from 'react';
 import {TextInput} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -8,8 +8,10 @@ import { ThemedView } from '@/components/ThemedView';
 
 
 export default function ProfileScreen() {
-    const username = "testUser";
-    const password = "password1";
+    const [username, onChangeTextU] = React.useState('testUser');
+    const [password, onChangeTextP] = React.useState('password1');
+    //const username = "testUser";
+    //const password = "password1";
     return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -24,20 +26,21 @@ export default function ProfileScreen() {
       </ThemedView>
       <TextInput
           style={styles.input}
-          value={username}
+          value={"enter new username"}
+          onChangeText={onChangeTextU}
           placeholder="enter new username"
         />
         <TextInput
           style={styles.input}
-          value={password}
+          value={"enter new password"}
+          onChangeText={onChangeTextP}
           placeholder="enter new password"
         />
-      <ThemedText style={styles.titleContainer}>
-        <ThemedText type="subtitle">Change Username?</ThemedText>
-      </ThemedText>
-      <ThemedText style={styles.titleContainer}>
-        <ThemedText type="subtitle">Change Username?</ThemedText>
-      </ThemedText>
+        <TextInput
+          style={styles.input}
+          value={"enter password to confirm"}
+          placeholder="enter password to confirm"
+        />
     </ParallaxScrollView>
   );
 }
