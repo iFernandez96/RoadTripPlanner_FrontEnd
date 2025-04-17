@@ -12,8 +12,13 @@ export default function ProfileScreen() {
     var password = 'password1'
     const [newUser, onChangeTextU] = React.useState('enter new username');
     const [newPass, onChangeTextP] = React.useState('enter new password');
-    //const username = "testUser";
     const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
+    const changeUNP= () =>{
+        if(oldPass==password){
+            username = newUser;
+            password = newPass;
+        }
+    }
     return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -24,7 +29,7 @@ export default function ProfileScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome! {username}</ThemedText>
+        <ThemedText type="title">Welcome! {username} {newUser}</ThemedText>
       </ThemedView>
       <SafeAreaProvider>
         <SafeAreaView>
@@ -49,7 +54,7 @@ export default function ProfileScreen() {
             <Button
                 title="press to confirm"
                 color='#FF0000'
-                onPress={() => username = newUser}
+                onPress={() => (changeUNP)}
             />
         </SafeAreaView>
       </SafeAreaProvider>
