@@ -99,7 +99,51 @@ export default function DirectionsMapScreen() {
       }
     })();
   }, []);
+const setOverallDist = (data) => {
+  try {
+    if (!data.routes || data.routes.length === 0) {
+      setDistance('No route found');
+      return;
+    }
 
+    let totalDistance = 0;
+    let totalDuration = 0;
+    let distanceDetails = [];
+
+    data.routes[0].legs.forEach((leg, index) => {
+      if (leg.distance && leg.duration) {
+        totalDistance += leg.distance.value;
+        totalDuration += leg.duration.value;
+
+        let from = index === 0 ? 'Origin' : `Waypoint ${index}`;
+        let to = index === data.routes[0].legs.length - 1 ? 'Destination' : `Waypoint ${index + 1}`;
+
+        distanceDetails.push({
+          from: from,
+          to: to,
+          distance: leg.distance.text,
+          duration: leg.duration.text
+        });
+      }
+    });
+
+    const totalDistanceMiles = (totalDistance / 1609.34).toFixed(2);
+
+    const hours = Math.floor(totalDuration / 3600);
+    const minutes = Math.floor((totalDuration % 3600) / 60);
+
+    const totalDurationText = hours > 0
+      ? `${hours} hr ${minutes} min`
+      : `${minutes} min`;
+
+    setDistance(`${totalDistanceMiles} mi, ${totalDurationText}`);
+
+    console.log("Route details:", distanceDetails);
+  } catch (error) {
+    console.error('Error calculating distance:', error);
+    setDistance('Error calculating distance');
+  }
+};
   const addWaypoint = () => {
     if (waypointInput.trim() === '') return;
 
@@ -141,7 +185,8 @@ export default function DirectionsMapScreen() {
         setLoading(false);
         return;
       }
-      setDistance(data.routes[0].legs[0].distance.text)
+
+      setOverallDist(data);
       // Decode the polyline
       const points = decodePolyline(data.routes[0].overview_polyline.points);
       setRoute(points);
