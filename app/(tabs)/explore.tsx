@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Dimensions, TextInput, ScrollView, TouchableOpa
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import ENV from '../../config';
+
 interface DirectionsResponse {
   routes: Array<{
     legs: Array<{
@@ -11,11 +12,38 @@ interface DirectionsResponse {
           points: string;
         };
       }>;
+      distance: {
+        text: string;
+        value: number;
+      };
+      duration: {
+        text: string;
+        value: number;
+      };
     }>;
     overview_polyline: {
       points: string;
     };
   }>;
+}
+
+interface DistanceMatrixResponse {
+  destination_addresses: string[];
+  origin_addresses: string[];
+  rows: Array<{
+    elements: Array<{
+      distance: {
+        text: string;
+        value: number;
+      };
+      duration: {
+        text: string;
+        value: number;
+      };
+      status: string;
+    }>;
+  }>;
+  status: string;
 }
 
 interface Waypoint {
@@ -99,51 +127,82 @@ export default function DirectionsMapScreen() {
       }
     })();
   }, []);
-const setOverallDist = (data) => {
-  try {
-    if (!data.routes || data.routes.length === 0) {
-      setDistance('No route found');
-      return;
-    }
 
-    let totalDistance = 0;
-    let totalDuration = 0;
-    let distanceDetails = [];
-
-    data.routes[0].legs.forEach((leg, index) => {
-      if (leg.distance && leg.duration) {
-        totalDistance += leg.distance.value;
-        totalDuration += leg.duration.value;
-
-        let from = index === 0 ? 'Origin' : `Waypoint ${index}`;
-        let to = index === data.routes[0].legs.length - 1 ? 'Destination' : `Waypoint ${index + 1}`;
-
-        distanceDetails.push({
-          from: from,
-          to: to,
-          distance: leg.distance.text,
-          duration: leg.duration.text
-        });
+  const calculateDistanceAndDuration = (data: DirectionsResponse) => {
+    try {
+      if (!data.routes || data.routes.length === 0) {
+        setDistance('No route found');
+        return;
       }
-    });
 
-    const totalDistanceMiles = (totalDistance / 1609.34).toFixed(2);
+      let totalDistance = 0;
+      let totalDuration = 0;
+      let distanceDetails = [];
 
-    const hours = Math.floor(totalDuration / 3600);
-    const minutes = Math.floor((totalDuration % 3600) / 60);
+      data.routes[0].legs.forEach((leg, index) => {
+        if (leg.distance && leg.duration) {
+          totalDistance += leg.distance.value;
+          totalDuration += leg.duration.value;
 
-    const totalDurationText = hours > 0
-      ? `${hours} hr ${minutes} min`
-      : `${minutes} min`;
+          let from = index === 0 ? 'Origin' : `Waypoint ${index}`;
+          let to = index === data.routes[0].legs.length - 1 ? 'Destination' : `Waypoint ${index + 1}`;
 
-    setDistance(`${totalDistanceMiles} mi, ${totalDurationText}`);
+          distanceDetails.push({
+            from: from,
+            to: to,
+            distance: leg.distance.text,
+            duration: leg.duration.text
+          });
+        }
+      });
+      const totalDistanceMiles = (totalDistance / 1609.34).toFixed(2);
 
-    console.log("Route details:", distanceDetails);
-  } catch (error) {
-    console.error('Error calculating distance:', error);
-    setDistance('Error calculating distance');
-  }
-};
+      const hours = Math.floor(totalDuration / 3600);
+      const minutes = Math.floor((totalDuration % 3600) / 60);
+
+      const totalDurationText = hours > 0
+        ? `${hours} hr ${minutes} min`
+        : `${minutes} min`;
+
+      setDistance(`${totalDistanceMiles} mi, ${totalDurationText}`);
+
+      console.log("Route details:", distanceDetails);
+    } catch (error) {
+      console.error('Error calculating distance:', error);
+      setDistance('Error calculating distance');
+    }
+  };
+
+  const calculateDistanceMatrix = (data: DistanceMatrixResponse) => {
+    try {
+      if (!data.rows || data.rows.length === 0 || !data.rows[0].elements || data.rows[0].elements.length === 0) {
+        setDistance('No distance data found');
+        return;
+      }
+
+      const element = data.rows[0].elements[0];
+      if (element.status !== 'OK') {
+        setDistance(`Error: ${element.status}`);
+        return;
+      }
+
+      const distanceMiles = (element.distance.value / 1609.34).toFixed(2);
+      const durationSecs = element.duration.value;
+
+      const hours = Math.floor(durationSecs / 3600);
+      const minutes = Math.floor((durationSecs % 3600) / 60);
+
+      const durationText = hours > 0
+        ? `${hours} hr ${minutes} min`
+        : `${minutes} min`;
+
+      setDistance(`${distanceMiles} mi, ${durationText}`);
+    } catch (error) {
+      console.error('Error calculating distance matrix:', error);
+      setDistance('Error calculating distance');
+    }
+  };
+
   const addWaypoint = () => {
     if (waypointInput.trim() === '') return;
 
@@ -186,7 +245,7 @@ const setOverallDist = (data) => {
         return;
       }
 
-      setOverallDist(data);
+      calculateDistanceAndDuration(data);
       // Decode the polyline
       const points = decodePolyline(data.routes[0].overview_polyline.points);
       setRoute(points);
@@ -232,11 +291,43 @@ const setOverallDist = (data) => {
     }
   };
 
+  const getDistanceAndTime = async () => {
+    if (!origin || !destination) {
+      setErrorMsg('Origin and destination are required');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const apiKey = ENV.apiKey;
+      const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(origin)}&destinations=${encodeURIComponent(destination)}&key=${apiKey}`;
+
+      const response = await fetch(url);
+      const data: DistanceMatrixResponse = await response.json();
+
+      if (data.status !== 'OK') {
+        setErrorMsg(`API Error: ${data.status}`);
+        setLoading(false);
+        return;
+      }
+
+      calculateDistanceMatrix(data);
+
+    } catch (error) {
+      console.error('Error fetching distance matrix:', error);
+      setErrorMsg('Error fetching distance information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <ScrollView contentContainerStyle={{ marginTop:75,flexGrow: 1 }}>
+    <ScrollView contentContainerStyle={{ marginTop: 75, flexGrow: 1 }}>
       <View style={{ flex: 1, backgroundColor: '#fff' }}>
         <View style={styles.inputContent}>
-          <Text style={styles.title}>Directions</Text>
+          <Text style={styles.title}>Distance and Directions</Text>
 
           <TextInput
             style={styles.input}
@@ -278,23 +369,39 @@ const setOverallDist = (data) => {
             </View>
           )}
 
-          <TouchableOpacity
-            style={styles.getDirectionsButton}
-            onPress={getDirections}
-            disabled={loading}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Loading...' : 'Get Directions'}
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.distanceButton]}
+              onPress={getDistanceAndTime}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Loading...' : 'Get Distance'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.actionButton, styles.directionsButton]}
+              onPress={getDirections}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>
+                {loading ? 'Loading...' : 'Get Directions'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {errorMsg && (
+            <Text style={styles.errorText}>{errorMsg}</Text>
+          )}
+
+          {distance && (
+            <Text style={styles.distanceText}>
+              Distance and Time: {distance}
             </Text>
-          </TouchableOpacity>
-         {distance && (
-           <Text style={styles.title}>
-             Distance: {distance}
-           </Text>
-         )}
+          )}
         </View>
 
-        {/* Map Section */}
         <View style={{ height: 600 }}>
           <MapView
             ref={mapRef}
@@ -323,7 +430,6 @@ const setOverallDist = (data) => {
       </View>
     </ScrollView>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -372,12 +478,25 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: 70,
   },
-  getDirectionsButton: {
-    backgroundColor: '#4285F4',
+  buttonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  actionButton: {
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 8,
+    flex: 1,
+  },
+  distanceButton: {
+    backgroundColor: '#FF9800',
+    marginRight: 8,
+  },
+  directionsButton: {
+    backgroundColor: '#4285F4',
+    marginLeft: 8,
   },
   buttonText: {
     color: '#fff',
@@ -418,6 +537,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#E53935',
+    marginBottom: 8,
+  },
+  distanceText: {
+    fontSize: 16,
+    fontWeight: '500',
+    backgroundColor: '#e8f0fe',
+    padding: 12,
+    borderRadius: 6,
     marginTop: 8,
   },
 });
