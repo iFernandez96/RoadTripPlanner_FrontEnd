@@ -1,6 +1,5 @@
-import { Image, StyleSheet, Button} from 'react-native';
+import { Image, StyleSheet, Button,TextInput, Text} from 'react-native';
 import React from 'react';
-import {TextInput} from 'react-native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -13,9 +12,13 @@ export default function ProfileScreen() {
     const [newUser, onChangeTextU] = React.useState('enter new username');
     const [newPass, onChangeTextP] = React.useState('enter new password');
     const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
-    const changeUNP= () =>{
+    const changeU= () =>{
         if(oldPass==password){
             username = newUser;
+        }
+    }
+    const changeP= () =>{
+        if(oldPass==password){
             password = newPass;
         }
     }
@@ -33,28 +36,39 @@ export default function ProfileScreen() {
       </ThemedView>
       <SafeAreaProvider>
         <SafeAreaView>
-            <TextInput
-            style={styles.input}
-            value={newUser}
-            onChangeText={onChangeTextU}
-            placeholder="enter new username"
-            />
-            <TextInput
-             style={styles.input}
-             value={newPass}
-             onChangeText={onChangeTextP}
-             placeholder="enter new password"
-            />
+            <Text style={styles.regText}>Enter old Password first </Text>
             <TextInput
              style={styles.input}
              value={oldPass}
              onChangeText={onChangeTextO}
+             defaultValue=''
              placeholder="enter password to confirm"
             />
+            <Text style={styles.regText}>Enter New Username then press red button</Text>
+            <TextInput
+            style={styles.input}
+            value={newUser}
+            onChangeText={onChangeTextU}
+            defaultValue=''
+            placeholder="enter new username"
+            />
             <Button
-                title="press to confirm"
+                title="press to change username"
                 color='#FF0000'
-                onPress={() => (changeUNP)}
+                onPress={() => (changeU)}
+            />
+            <Text style={styles.regText}>Enter New Password then press blue button</Text>
+            <TextInput
+             style={styles.input}
+             value={newPass}
+             onChangeText={onChangeTextP}
+             defaultValue=''
+             placeholder="enter new password"
+            />
+            <Button
+                title="press to change password"
+                color='#0000FF'
+                onPress={() => (changeP)}
             />
         </SafeAreaView>
       </SafeAreaProvider>
@@ -84,6 +98,12 @@ const styles = StyleSheet.create({
       height: 40,
       margin: 12,
       borderWidth: 1,
+      padding: 10,
+    },
+    regText: {
+      color: '#808080',
+      height: 40,
+      margin: 12,
       padding: 10,
     }
 });
