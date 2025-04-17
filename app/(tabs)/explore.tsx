@@ -76,6 +76,7 @@ export default function DirectionsMapScreen() {
   const [waypointInput, setWaypointInput] = useState<string>('');
   const [markers, setMarkers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [distance, setDistance] = useState<string>('');
 
   useEffect(() => {
     (async () => {
@@ -130,7 +131,7 @@ export default function DirectionsMapScreen() {
         waypointsParam = '&waypoints=' + waypoints.map(wp => encodeURIComponent(wp.location)).join('|');
       }
 
-      const apiKey = 'key';
+      const apiKey = 'AIzaSyDGPCkGqoECDxC0_s87c5WubT5CPrjouf4';
       const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${waypointsParam}&key=${apiKey}`;
 
       const response = await fetch(url);
@@ -141,11 +142,10 @@ export default function DirectionsMapScreen() {
         setLoading(false);
         return;
       }
-
+      setDistance(data.routes[0].legs[0].distance.text)
       // Decode the polyline
       const points = decodePolyline(data.routes[0].overview_polyline.points);
       setRoute(points);
-
       const allLocations = [
         { title: 'Origin', location: origin },
         ...waypoints.map(wp => ({ title: 'Waypoint', location: wp.location })),
@@ -243,8 +243,11 @@ export default function DirectionsMapScreen() {
               {loading ? 'Loading...' : 'Get Directions'}
             </Text>
           </TouchableOpacity>
-
-          {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+         {distance && (
+           <Text style={styles.title}>
+             Distance: {distance}
+           </Text>
+         )}
         </View>
 
         {/* Map Section */}
