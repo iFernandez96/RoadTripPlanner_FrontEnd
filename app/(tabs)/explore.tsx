@@ -131,7 +131,7 @@ export default function DirectionsMapScreen() {
         waypointsParam = '&waypoints=' + waypoints.map(wp => encodeURIComponent(wp.location)).join('|');
       }
 
-      const apiKey = 'AIzaSyDGPCkGqoECDxC0_s87c5WubT5CPrjouf4';
+      const apiKey = 'key';
       const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}${waypointsParam}&key=${apiKey}`;
 
       const response = await fetch(url);
