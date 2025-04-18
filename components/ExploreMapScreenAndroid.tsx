@@ -1,18 +1,18 @@
-// components/MapContainer/MapContainer.native.tsx
+// components/MapContainer/MapContainer.android.tsx
 import React, { forwardRef } from 'react';
 import { ExpoMap, ExpoMarker, ExpoPolyline } from 'expo-maps';
 
 interface MapContainerProps {
-  initialRegion: {
+  initialRegion?: {
     latitude: number;
     longitude: number;
     latitudeDelta: number;
     longitudeDelta: number;
   };
-  mapType: string;
-  showsTraffic: boolean;
-  showsUserLocation: boolean;
-  markers: Array<{
+  mapType?: string;
+  showsTraffic?: boolean;
+  showsUserLocation?: boolean;
+  markers?: Array<{
     coordinate: {
       latitude: number;
       longitude: number;
@@ -20,14 +20,15 @@ interface MapContainerProps {
     title: string;
     description: string;
   }>;
-  route: Array<{
+  route?: Array<{
     latitude: number;
     longitude: number;
   }>;
 }
 
+// Make Android use the same component as other platforms
 const MapContainer = forwardRef<ExpoMap, MapContainerProps>(
-  ({ initialRegion, mapType, showsTraffic, showsUserLocation, markers, route }, ref) => {
+  ({ initialRegion, mapType = 'standard', showsTraffic = false, showsUserLocation = true, markers = [], route = [] }, ref) => {
     return (
       <ExpoMap
         ref={ref}
@@ -35,7 +36,7 @@ const MapContainer = forwardRef<ExpoMap, MapContainerProps>(
         initialRegion={initialRegion}
         mapType={mapType}
         showsTraffic={showsTraffic}
-        showsUserLocation={showUserLocation}
+        showsUserLocation={showsUserLocation}
         showsMyLocationButton={false}
         showsCompass={false}
         showsScale={true}
