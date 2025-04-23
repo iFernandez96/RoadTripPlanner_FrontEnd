@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 
@@ -15,10 +15,19 @@ export default function GoogleProfile() {
 
   useEffect(() => {
     const loadUserFromToken = async () => {
-      const token = await SecureStore.getItemAsync('userToken');
+      let token: string | null = null;
+
+      if (Platform.OS === 'web') {
+        token = localStorage.getItem('userToken');
+      } else {
+        token = await SecureStore.getItemAsync('userToken');
+      }
+
       if (token) {
         const decoded: DecodedToken = jwtDecode(token);
         setUser(decoded);
+        console.log('Decoded JWT:', decoded);
+
       }
     };
 
@@ -36,6 +45,7 @@ export default function GoogleProfile() {
       <Text style={styles.email}>{user.email}</Text>
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({
