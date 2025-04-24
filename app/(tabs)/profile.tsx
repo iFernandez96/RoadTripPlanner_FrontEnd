@@ -5,6 +5,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 
 export default function ProfileScreen() {
@@ -56,6 +57,8 @@ export default function ProfileScreen() {
                 color='#FF0000'
                 onPress={() => (changeUNP)}
             />
+            <Button title="Login with Google" onPress={() => router.push('/(auth)/google-login')} />
+
         </SafeAreaView>
       </SafeAreaProvider>
     </ParallaxScrollView>
