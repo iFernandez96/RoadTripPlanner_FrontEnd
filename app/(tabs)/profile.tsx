@@ -8,7 +8,8 @@ import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
     var username = 'testUser';
-    var password = 'password1'
+    var password = 'password1';
+    var num = '1';
     const [newUser, onChangeTextU] = React.useState('enter new username');
     const [newPass, onChangeTextP] = React.useState('enter new password');
     const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
@@ -16,6 +17,7 @@ export default function ProfileScreen() {
         if(oldPass==password){
             username = newUser;
         }
+        num = num + 1;
     }
     const changeP= () =>{
         if(oldPass==password){
@@ -32,7 +34,7 @@ export default function ProfileScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome! {username} {newUser}</ThemedText>
+        <ThemedText type="title">Welcome! {username} {num}</ThemedText>
       </ThemedView>
       <SafeAreaProvider>
         <SafeAreaView>
