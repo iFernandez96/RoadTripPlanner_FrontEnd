@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+
 import {
   View,
   Text,
@@ -38,6 +40,9 @@ export default function RoadTripPlannerApp() {
   const [newTripModalVisible, setNewTripModalVisible] = useState(false);
   const [tripDetailsModalVisible, setTripDetailsModalVisible] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+    const router = useRouter();
+
   const [newTrip, setNewTrip] = useState({
     title: '',
     description: '',
@@ -78,14 +83,17 @@ export default function RoadTripPlannerApp() {
       </View>
     </TouchableOpacity>
   );
-
+const handleCreateTrip = (): void => {
+      router.push('/screens/createTrip');
+    };
   const TripOverview = () => (
     <View style={styles.card}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>My Trips</Text>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setNewTripModalVisible(true)}
+          onPress={handleCreateTrip}
+          disabled={isLoading}
         >
           <Text style={styles.buttonText}>+ New Trip</Text>
         </TouchableOpacity>
@@ -109,92 +117,7 @@ export default function RoadTripPlannerApp() {
     </View>
   );
 
-  const NewTripModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={newTripModalVisible}
-      onRequestClose={() => setNewTripModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Add New Trip</Text>
 
-          <View style={styles.form}>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Trip Title</Text>
-              <TextInput
-                style={styles.input}
-                value={newTrip.title}
-                onChangeText={(text) => setNewTrip({...newTrip, title: text})}
-                placeholder="e.g., Pacific Coast Highway"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Description</Text>
-              <TextInput
-                style={styles.input}
-                value={newTrip.description}
-                onChangeText={(text) => setNewTrip({...newTrip, description: text})}
-                placeholder="Brief description of your trip"
-                multiline
-              />
-            </View>
-
-            <View style={styles.formRow}>
-              <View style={[styles.formGroup, {flex: 1, marginRight: 8}]}>
-                <Text style={styles.label}>Start Date</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newTrip.start_date}
-                  onChangeText={(text) => setNewTrip({...newTrip, start_date: text})}
-                  placeholder="YYYY-MM-DD"
-                />
-              </View>
-
-              <View style={[styles.formGroup, {flex: 1}]}>
-                <Text style={styles.label}>End Date</Text>
-                <TextInput
-                  style={styles.input}
-                  value={newTrip.end_date}
-                  onChangeText={(text) => setNewTrip({...newTrip, end_date: text})}
-                  placeholder="YYYY-MM-DD"
-                />
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Notes</Text>
-              <TextInput
-                style={[styles.input, {height: 80}]}
-                value={newTrip.notes}
-                onChangeText={(text) => setNewTrip({...newTrip, notes: text})}
-                placeholder="Any additional notes about your trip"
-                multiline
-              />
-            </View>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => setNewTripModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton]}
-                onPress={handleAddTrip}
-              >
-                <Text style={styles.buttonText}>Add Trip</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
 
   const TripDetailsModal = () => {
     if (!selectedTrip) return null;
@@ -265,8 +188,6 @@ export default function RoadTripPlannerApp() {
           <TripOverview />
         </View>
       </ScrollView>
-
-      <NewTripModal />
       <TripDetailsModal />
     </SafeAreaView>
   );
