@@ -1,28 +1,25 @@
-import { Image, StyleSheet, Button,TextInput, Text} from 'react-native';
-import React from 'react';
+import { Image, StyleSheet, TextInput, Button} from 'react-native';
+import React, { useState } from 'react';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 
 export default function ProfileScreen() {
-    var username = 'testUser';
-    var password = 'password1';
-    var num = '1';
-    const [newUser, onChangeTextU] = React.useState('enter new username');
-    const [newPass, onChangeTextP] = React.useState('enter new password');
-    const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
-    const changeU= () =>{
-        if(oldPass==password){
-            username = newUser;
-        }
-        num = num + 1;
+    const [username, setUsername] = useState('initialUsername');
+    const [newUsername, setNewUsername] = useState('');
+    const [password, setPassword] = useState('initialPassword');
+    const [newPassword, setNewPassword] = useState('');
+    const [oldPassword, setOldPassword] = useState('');
+    const handleUsernameChange = () => {
+      if(oldPassword==password){
+        setUsername(newUsername);
+      }
     }
-    const changeP= () =>{
-        if(oldPass==password){
-            password = newPass;
-        }
+    const handlePasswordChange = () => {
+      if(oldPassword==password){
+        setPassword(newPassword);
+      }
     }
     return (
     <ParallaxScrollView
@@ -34,46 +31,31 @@ export default function ProfileScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome! {username} {num}</ThemedText>
+        <ThemedText type="title">Welcome! {username}</ThemedText>
       </ThemedView>
-      <SafeAreaProvider>
-        <SafeAreaView>
-            <Text style={styles.regText}>Enter old Password first </Text>
-            <TextInput
-             style={styles.input}
-             value={oldPass}
-             onChangeText={onChangeTextO}
-             defaultValue=''
-             placeholder="enter password to confirm"
-            />
-            <Text style={styles.regText}>Enter New Username then press red button</Text>
-            <TextInput
-            style={styles.input}
-            value={newUser}
-            onChangeText={onChangeTextU}
-            defaultValue=''
-            placeholder="enter new username"
-            />
-            <Button
-                title="press to change username"
-                color='#FF0000'
-                onPress={() => (changeU)}
-            />
-            <Text style={styles.regText}>Enter New Password then press blue button</Text>
-            <TextInput
-             style={styles.input}
-             value={newPass}
-             onChangeText={onChangeTextP}
-             defaultValue=''
-             placeholder="enter new password"
-            />
-            <Button
-                title="press to change password"
-                color='#0000FF'
-                onPress={() => (changeP)}
-            />
-        </SafeAreaView>
-      </SafeAreaProvider>
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="Enter old Password"
+          value={oldPassword}
+          onChangeText={text => setOldPassword(text)}
+        />
+      </ThemedView>
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="New Username"
+          value={newUsername}
+          onChangeText={text => setNewUsername(text)}
+        />
+        <Button title="Change Username" onPress={handleUsernameChange}/>
+      </ThemedView>
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="New Password"
+          value={newPassword}
+          onChangeText={text => setNewPassword(text)}
+        />
+        <Button title="Change Password" onPress={handlePasswordChange}/>
+      </ThemedView>
     </ParallaxScrollView>
   );
 }
