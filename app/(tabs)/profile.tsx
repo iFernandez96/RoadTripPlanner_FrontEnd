@@ -38,6 +38,7 @@ export default function ProfileScreen() {
           placeholder="Enter old Password"
           value={oldPassword}
           onChangeText={text => setOldPassword(text)}
+          style={styles.input}
         />
       </ThemedView>
       <ThemedView style={styles.regText}>
@@ -45,6 +46,7 @@ export default function ProfileScreen() {
           placeholder="New Username"
           value={newUsername}
           onChangeText={text => setNewUsername(text)}
+          style={styles.input}
         />
         <Button title="Change Username" onPress={handleUsernameChange}/>
       </ThemedView>
@@ -53,6 +55,7 @@ export default function ProfileScreen() {
           placeholder="New Password"
           value={newPassword}
           onChangeText={text => setNewPassword(text)}
+          style={styles.input}
         />
         <Button title="Change Password" onPress={handlePasswordChange}/>
       </ThemedView>
