@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 
 export default function ProfileScreen() {
@@ -23,7 +25,7 @@ export default function ProfileScreen() {
     }
     return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#A1CEDC' }}
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
@@ -58,6 +60,8 @@ export default function ProfileScreen() {
           style={styles.input}
         />
         <Button title="Change Password" onPress={handlePasswordChange}/>
+
+        <Button title="Login with Google" onPress={() => router.push('/(auth)/google-login')} />
       </ThemedView>
     </ParallaxScrollView>
   );
