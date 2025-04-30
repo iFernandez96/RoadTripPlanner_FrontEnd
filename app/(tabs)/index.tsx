@@ -60,15 +60,14 @@ export default function RoadTripPlannerApp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const openTripDetails = (trip: Trip) => {
-    setSelectedTrip(trip);
-    setTripDetailsModalVisible(true);
+  const openTripDetails = () => {
+     router.push('/screens/viewTrip');
   };
 
   const renderTrip = ({ item }: { item: Trip }) => (
     <TouchableOpacity
       style={styles.listItem}
-      onPress={() => openTripDetails(item)}
+      onPress={() => openTripDetails()}
     >
       <Text style={styles.tripTitle}>{item.title}</Text>
       <Text style={styles.tripDescription}>{item.description}</Text>
@@ -117,74 +116,6 @@ export default function RoadTripPlannerApp() {
     </View>
   );
 
-  const TripDetailsModal = () => {
-    if (!selectedTrip) return null;
-
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={tripDetailsModalVisible}
-        onRequestClose={() => setTripDetailsModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.tripDetailHeader}>
-              <Text style={styles.modalTitle}>{selectedTrip.title}</Text>
-              <Text style={styles.tripDetailDates}>{selectedTrip.start_date} → {selectedTrip.end_date}</Text>
-              <Text style={styles.tripDetailLocations}>{selectedTrip.start_location} → {selectedTrip.end_location}</Text>
-            </View>
-
-            <ScrollView style={styles.tripDetailsScrollView}>
-
-
-              {selectedTrip.stops && selectedTrip.stops.length > 0 && (
-                <View style={styles.tripDetailSection}>
-                  <Text style={styles.tripDetailSectionTitle}>Planned Stops</Text>
-                  {selectedTrip.stops.map((stop, index) => (
-                    <View key={index} style={styles.stopItem}>
-                      <Text style={styles.stopNumber}>{index + 1}</Text>
-                      <Text style={styles.stopName}>{stop}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              {selectedTrip.friends && selectedTrip.friends.length > 0 && (
-                <View style={styles.tripDetailSection}>
-                  <Text style={styles.tripDetailSectionTitle}>Travel Companions</Text>
-                  <View style={styles.friendsContainer}>
-                    {selectedTrip.friends.map((friend, index) => (
-                      <View key={index} style={styles.friendItem}>
-                        <Text style={styles.friendName}>{friend}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              )}
-
-              {selectedTrip.supplies && (
-                <View style={styles.tripDetailSection}>
-                  <Text style={styles.tripDetailSectionTitle}>Supplies</Text>
-                  <View style={styles.suppliesContainer}>
-                    <Text style={styles.suppliesText}>{selectedTrip.supplies}</Text>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-
-            <TouchableOpacity
-              style={[styles.button, {marginTop: 16}]}
-              onPress={() => setTripDetailsModalVisible(false)}
-            >
-              <Text style={styles.buttonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -197,7 +128,6 @@ export default function RoadTripPlannerApp() {
           <TripOverview />
         </View>
       </ScrollView>
-      <TripDetailsModal />
     </SafeAreaView>
   );
 }

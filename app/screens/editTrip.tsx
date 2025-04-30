@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,69 +11,116 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 
-const CreateTrip = () => {
-  const [newTrip, setNewTrip] = useState({
-    title: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-    start_location: '',
-    end_location: '',
-    stops: [],
-    notes: '',
-    friends: [],
-    supplies: ''
-  });
+interface Trip {
+  id: number;
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  start_location: string;
+  end_location: string;
+  stops: string[];
+  notes: string;
+  friends: string[];
+  supplies: string;
+}
 
+const sampleTrip: Trip = {
+  id: 1,
+  title: "Pacific Coast Highway",
+  description: "",
+  start_date: "2025-06-01",
+  end_date: "2025-06-10",
+  start_location: "San Francisco",
+  end_location: "San Diego",
+  stops: ["Monterey", "Big Sur", "Santa Barbara", "Los Angeles"],
+  notes: "",
+  friends: ["Alex", "Jordan"],
+  supplies: "Sunscreen, hiking shoes, camera, beach towels"
+};
+
+const EditTrip = () => {
+  const [trip, setTrip] = useState<Trip>(sampleTrip);
   const [currentStop, setCurrentStop] = useState('');
   const [currentFriend, setCurrentFriend] = useState('');
 
-  const handleAddTrip = () => {
-    if (!newTrip.title || !newTrip.start_date || !newTrip.end_date || !newTrip.start_location || !newTrip.end_location) {
+  useEffect(() => {
+
+    setTrip(sampleTrip);
+  }, []);
+
+  const handleUpdateTrip = () => {
+    if (!trip.title || !trip.start_date || !trip.end_date || !trip.start_location || !trip.end_location) {
       Alert.alert('Required Fields', 'Please fill in all the required fields');
       return;
     }
-    console.log('Saving trip:', newTrip);
-    router.replace('/');
+
+    console.log('Updating trip:', trip);
+    Alert.alert(
+      'Trip Updated',
+      'Your trip has been successfully updated!',
+      [{ text: 'OK', onPress: () => router.back() }]
+    );
   };
 
   const handleAddStop = () => {
     if (currentStop.trim()) {
-      setNewTrip({
-        ...newTrip,
-        stops: [...newTrip.stops, currentStop.trim()]
+      setTrip({
+        ...trip,
+        stops: [...trip.stops, currentStop.trim()]
       });
       setCurrentStop('');
     }
   };
 
+  const handleRemoveStop = (indexToRemove: number) => {
+    setTrip({
+      ...trip,
+      stops: trip.stops.filter((_, index) => index !== indexToRemove)
+    });
+  };
+
   const handleAddFriend = () => {
     if (currentFriend.trim()) {
-      setNewTrip({
-        ...newTrip,
-        friends: [...newTrip.friends, currentFriend.trim()]
+      setTrip({
+        ...trip,
+        friends: [...trip.friends, currentFriend.trim()]
       });
       setCurrentFriend('');
     }
   };
 
+  const handleRemoveFriend = (indexToRemove: number) => {
+    setTrip({
+      ...trip,
+      friends: trip.friends.filter((_, index) => index !== indexToRemove)
+    });
+  };
+
   const onClose = () => {
-    router.back();
+    Alert.alert(
+      'Discard Changes',
+      'Are you sure you want to discard your changes?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Discard', onPress: () => router.back() }
+      ]
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.formContainer}>
-          <Text style={styles.modalTitle}>Add New Trip</Text>
+          <Text style={styles.modalTitle}>Edit Trip</Text>
 
           <View style={styles.form}>
             <View style={styles.formGroup}>
               <Text style={styles.label}>Trip Title *</Text>
               <TextInput
                 style={styles.input}
-                value={newTrip.title}
-                onChangeText={(text) => setNewTrip({...newTrip, title: text})}
+                value={trip.title}
+                onChangeText={(text) => setTrip({...trip, title: text})}
                 placeholder="Ex: Bois Trip"
               />
             </View>
@@ -83,12 +130,21 @@ const CreateTrip = () => {
                 <Text style={styles.label}>Start Date *</Text>
                 <TextInput
                   style={styles.input}
-                  value={newTrip.start_date}
-                  onChangeText={(text) => setNewTrip({...newTrip, start_date: text})}
+                  value={trip.start_date}
+                  onChangeText={(text) => setTrip({...trip, start_date: text})}
                   placeholder="YYYY-MM-DD"
                 />
               </View>
 
+              <View style={[styles.formGroup, {flex: 1}]}>
+                <Text style={styles.label}>End Date *</Text>
+                <TextInput
+                  style={styles.input}
+                  value={trip.end_date}
+                  onChangeText={(text) => setTrip({...trip, end_date: text})}
+                  placeholder="YYYY-MM-DD"
+                />
+              </View>
             </View>
 
             <View style={styles.formRow}>
@@ -96,8 +152,8 @@ const CreateTrip = () => {
                 <Text style={styles.label}>Start Location *</Text>
                 <TextInput
                   style={styles.input}
-                  value={newTrip.start_location}
-                  onChangeText={(text) => setNewTrip({...newTrip, start_location: text})}
+                  value={trip.start_location}
+                  onChangeText={(text) => setTrip({...trip, start_location: text})}
                   placeholder="Ex: Salinas"
                 />
               </View>
@@ -106,15 +162,15 @@ const CreateTrip = () => {
                 <Text style={styles.label}>End Location *</Text>
                 <TextInput
                   style={styles.input}
-                  value={newTrip.end_location}
-                  onChangeText={(text) => setNewTrip({...newTrip, end_location: text})}
+                  value={trip.end_location}
+                  onChangeText={(text) => setTrip({...trip, end_location: text})}
                   placeholder="Ex: San Francisco"
                 />
               </View>
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Add Stops:</Text>
+              <Text style={styles.label}>Stops</Text>
               <View style={styles.inputWithButton}>
                 <TextInput
                   style={[styles.input, {flex: 1, marginRight: 8}]}
@@ -129,18 +185,23 @@ const CreateTrip = () => {
                   <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
               </View>
-              {newTrip.stops.length > 0 && (
+              {trip.stops.length > 0 && (
                 <View style={styles.listContainer}>
-                  <Text style={styles.subLabel}>Added Stops:</Text>
-                  {newTrip.stops.map((stop, index) => (
-                    <Text key={index} style={styles.listItem}>• {stop}</Text>
+                  <Text style={styles.subLabel}>Stops:</Text>
+                  {trip.stops.map((stop, index) => (
+                    <View key={index} style={styles.listItemContainer}>
+                      <Text style={styles.listItem}>• {stop}</Text>
+                      <TouchableOpacity onPress={() => handleRemoveStop(index)}>
+                        <Text style={styles.removeButton}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
                   ))}
                 </View>
               )}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Add Friends:</Text>
+              <Text style={styles.label}>Friends</Text>
               <View style={styles.inputWithButton}>
                 <TextInput
                   style={[styles.input, {flex: 1, marginRight: 8}]}
@@ -155,11 +216,16 @@ const CreateTrip = () => {
                   <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
               </View>
-              {newTrip.friends.length > 0 && (
+              {trip.friends.length > 0 && (
                 <View style={styles.listContainer}>
-                  <Text style={styles.subLabel}>Added Friends:</Text>
-                  {newTrip.friends.map((friend, index) => (
-                    <Text key={index} style={styles.listItem}>• {friend}</Text>
+                  <Text style={styles.subLabel}>Friends:</Text>
+                  {trip.friends.map((friend, index) => (
+                    <View key={index} style={styles.listItemContainer}>
+                      <Text style={styles.listItem}>• {friend}</Text>
+                      <TouchableOpacity onPress={() => handleRemoveFriend(index)}>
+                        <Text style={styles.removeButton}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
                   ))}
                 </View>
               )}
@@ -169,8 +235,8 @@ const CreateTrip = () => {
               <Text style={styles.label}>Supplies</Text>
               <TextInput
                 style={[styles.input, {height: 80}]}
-                value={newTrip.supplies}
-                onChangeText={(text) => setNewTrip({...newTrip, supplies: text})}
+                value={trip.supplies}
+                onChangeText={(text) => setTrip({...trip, supplies: text})}
                 placeholder="List your supplies here"
                 multiline
               />
@@ -186,9 +252,9 @@ const CreateTrip = () => {
 
               <TouchableOpacity
                 style={[styles.button, styles.saveButton]}
-                onPress={handleAddTrip}
+                onPress={handleUpdateTrip}
               >
-                <Text style={styles.buttonText}>Add Trip</Text>
+                <Text style={styles.buttonText}>Update Trip</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -268,15 +334,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+    flex: 1,
   },
   saveButton: {
     backgroundColor: '#22c55e',
-    flex: 1,
   },
   cancelButton: {
     backgroundColor: '#f1f5f9',
     marginRight: 12,
-    flex: 1,
   },
   buttonText: {
     color: 'white',
@@ -308,11 +373,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 8,
   },
+  listItemContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   listItem: {
     fontSize: 14,
     color: '#334155',
     marginBottom: 4,
+    flex: 1,
+  },
+  removeButton: {
+    color: '#ef4444',
+    fontWeight: '700',
+    fontSize: 14,
+    padding: 4,
   },
 });
 
-export default CreateTrip;
+export default EditTrip;
