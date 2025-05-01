@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Image, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { styles } from '../css/login';
@@ -12,7 +12,16 @@ export default function LoginScreen(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loginAttempts, setLoginAttempts] = useState<number>(0);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  
+  // User null check to redirect authenticated users
+  useEffect(() => {
+    if (user) {
+      router.replace({ pathname: '/' });
+
+    }
+  }, [user]);
+  
 
   const handleLogin = async (): Promise<void> => {
     if (!username || !password) {
