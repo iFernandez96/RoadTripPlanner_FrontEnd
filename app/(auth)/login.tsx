@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Image, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import { styles } from '../css/login';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '../context/AuthContext';
@@ -52,6 +52,10 @@ export default function LoginScreen(): JSX.Element {
     router.push('/(auth)/register');
   };
 
+  const handleGoogleLogin = (): void => {
+    router.push('/(auth)/google-login');
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.logoContainer}>
@@ -61,110 +65,67 @@ export default function LoginScreen(): JSX.Element {
         />
       </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <ThemedText style={styles.label}>Username</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!isLoading}
-        />
+      <ThemedView style={styles.card}>
+        <ThemedText style={styles.title}>Road Trip Planner</ThemedText>
+        <ThemedText style={styles.subtitle}>Sign in to your account</ThemedText>
 
-        <ThemedText style={styles.label}>Password</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          editable={!isLoading}
-        />
+        <ThemedView style={styles.inputContainer}>
+          <ThemedText style={styles.label}>Username</ThemedText>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your username"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!isLoading}
+          />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <ThemedText style={styles.buttonText}>Login</ThemedText>
+          <ThemedText style={styles.label}>Password</ThemedText>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!isLoading}
+          />
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <ThemedText style={styles.buttonText}>Login</ThemedText>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.greenButton]}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.buttonText}>Create Account</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.altButton]}
+            onPress={handleGoogleLogin}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.buttonText}>Login with Google</ThemedText>
+          </TouchableOpacity>
+
+          {loginAttempts > 0 && (
+            <ThemedText style={styles.helperText}>
+              Forgot your password? Please contact the administrator.
+            </ThemedText>
           )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.registerButton]}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          <ThemedText style={styles.buttonText}>Create Account</ThemedText>
-        </TouchableOpacity>
-
-        {loginAttempts > 0 && (
-          <ThemedText style={styles.forgotPasswordText}>
-            Forgot your password? Please contact the administrator.
-          </ThemedText>
-        )}
+        </ThemedView>
       </ThemedView>
     </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logo: {
-    width: 300,
-    height: 300,
-    marginBottom: 10,
-    resizeMode: 'contain',
-  },
-  inputContainer: {
-    width: '100%',
-    maxWidth: 400,
-    alignSelf: 'center',
-  },
-  label: {
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-  },
-  button: {
-    backgroundColor: '#3b82f6',
-    height: 50,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  registerButton: {
-    backgroundColor: '#22c55e',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  forgotPasswordText: {
-    marginTop: 12,
-    textAlign: 'center',
-    color: '#666',
-  },
-});
