@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
 
 // Simulated API URL - replace with your actual backend URL
-const API_URL = 'https://your-api-url.com';
+const API_URL = 'https://roadtrip-planner-api-ddd2dd6834e8.herokuapp.com/api/';
 
 interface User {
   id: string;
