@@ -309,6 +309,21 @@ const styles = StyleSheet.create({
     color: '#166534',
     lineHeight: 22,
   },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
+  logoutButton: {
+    padding: 8,
+    borderRadius: 5,
+    backgroundColor: '#f0f0f0',
+  },
+  logoutText: {
+    color: '#333',
+    fontWeight: '500',
+  },
 });
 
 export default styles;

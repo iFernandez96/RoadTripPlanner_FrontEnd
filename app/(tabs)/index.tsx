@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import styles from '../css/index';
+import { useAuth } from '../context/AuthContext';
+
 import {
   View,
   Text,
@@ -59,9 +61,13 @@ export default function RoadTripPlannerApp() {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const { logout } = useAuth();
+  const handleLogout = (): void => {
+    logout();
+  };
 
   const openTripDetails = () => {
-     router.push('/screens/viewTrip');
+    router.push('/screens/viewTrip');
   };
 
   const renderTrip = ({ item }: { item: Trip }) => (
@@ -122,6 +128,12 @@ export default function RoadTripPlannerApp() {
         <View style={styles.header}>
           <Text style={styles.title}>Road Trip Planner</Text>
           <Text style={styles.subtitle}>Plan, organize, and collaborate on road trips effortlessly.</Text>
+          <TouchableOpacity
+            onPress={handleLogout}
+            style={styles.logoutButton}
+          >
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.main}>
