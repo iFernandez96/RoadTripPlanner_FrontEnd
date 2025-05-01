@@ -3,7 +3,6 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
 
-// Simulated API URL - replace with your actual backend URL
 const API_URL = 'https://roadtrip-planner-api-ddd2dd6834e8.herokuapp.com/api/';
 
 interface User {
@@ -90,26 +89,26 @@ const mockApi = {
 
 // In a real app, replace the mock API with real API calls
 // Example:
-// const api = {
-//   login: async (username: string, password: string) => {
-//     const response = await fetch(`${API_URL}/auth/login`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ username, password }),
-//     });
-//     if (!response.ok) return null;
-//     return response.json();
-//   },
-//   register: async (username: string, password: string) => {
-//     const response = await fetch(`${API_URL}/auth/register`, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ username, password }),
-//     });
-//     if (!response.ok) return null;
-//     return response.json();
-//   }
-// };
+const api = {
+  login: async (username: string, password: string) => {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!response.ok) return null;
+    return response.json();
+  },
+  register: async (username: string, password: string) => {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!response.ok) return null;
+    return response.json();
+  }
+};
 
 const saveToken = async (token: string): Promise<void> => {
   try {
@@ -164,17 +163,15 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Parse user from JWT token
   const parseUser = (token: string): User | null => {
     try {
       // In a real app, use jwt-decode to decode the token
       // The mockApi uses a simple base64 encoding for demo purposes
       const decoded = JSON.parse(atob(token)) as JwtPayload;
 
-      // Check if token is expired
       const currentTime = Math.floor(Date.now() / 1000);
       if (decoded.exp < currentTime) {
-        return null; // Token expired
+        return null;
       }
 
       return {
@@ -188,7 +185,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
-  // Check if user is already logged in on app start
   useEffect(() => {
     const loadUser = async (): Promise<void> => {
       try {
@@ -199,7 +195,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
           if (userData) {
             setUser(userData);
           } else {
-            // Token is invalid or expired
             await removeToken();
           }
         }
