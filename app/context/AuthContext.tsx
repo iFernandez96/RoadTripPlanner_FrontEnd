@@ -1,15 +1,22 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import { jwtDecode } from 'jwt-decode';
+
+// Simulated API URL - replace with your actual backend URL
+const API_URL = 'https://your-api-url.com';
 
 interface User {
+  id: string;
   username: string;
+  email?: string;
 }
 
-interface StoredUserData {
+interface JwtPayload {
+  sub: string;
   username: string;
-  passwordHash: string;
-  salt: string;
+  email?: string;
+  exp: number;
 }
 
 interface AuthContextType {
@@ -19,33 +26,126 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   register: (username: string, password: string) => Promise<boolean>;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS_STORAGE_KEY = 'users';
-const CURRENT_USER_KEY = 'currentUser';
+// Token storage keys
+const ACCESS_TOKEN_KEY = 'accessToken';
 
-const generateSalt = async (): Promise<string> => {
-  // Generate a random 16-byte salt
-  const saltBytes = await Crypto.getRandomBytesAsync(16);
-  // Convert to hex string
-  return Array.from(saltBytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+// For demo purposes, simulating API calls
+// In a real app, replace these with actual API calls
+const mockApi = {
+  login: async (username: string, password: string): Promise<{ token: string } | null> => {
+    // Simulate API validation
+    if (username === 'demo' && password === 'password') {
+      // Create a simple JWT that expires in 7 days
+      const payload = {
+        sub: '123456',
+        username: username,
+        email: `${username}@example.com`,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 days
+      };
+
+      // This is a mock JWT, not a real one
+      // In a real app, the server would generate and sign this
+      const token = btoa(JSON.stringify(payload));
+
+      return { token };
+    }
+
+    // Demo account for quick testing
+    if (username === 'test' && password === 'test') {
+      const payload = {
+        sub: '654321',
+        username: username,
+        email: `${username}@example.com`,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+      };
+
+      const token = btoa(JSON.stringify(payload));
+      return { token };
+    }
+
+    return null;
+  },
+
+  register: async (username: string, password: string): Promise<{ token: string } | null> => {
+    if (username === 'demo' || username === 'admin') {
+      return null; // Username taken
+    }
+
+    const payload = {
+      sub: Date.now().toString(),
+      username: username,
+      email: `${username}@example.com`,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
+    };
+
+    const token = btoa(JSON.stringify(payload));
+    return { token };
+  }
 };
 
-const hashPassword = async (password: string, salt: string): Promise<string> => {
-  // Combine password and salt
-  const combined = password + salt;
+// In a real app, replace the mock API with real API calls
+// Example:
+// const api = {
+//   login: async (username: string, password: string) => {
+//     const response = await fetch(`${API_URL}/auth/login`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ username, password }),
+//     });
+//     if (!response.ok) return null;
+//     return response.json();
+//   },
+//   register: async (username: string, password: string) => {
+//     const response = await fetch(`${API_URL}/auth/register`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ username, password }),
+//     });
+//     if (!response.ok) return null;
+//     return response.json();
+//   }
+// };
 
-  // Hash with SHA-512
-  const hash = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA512,
-    combined
-  );
+const saveToken = async (token: string): Promise<void> => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    } else {
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, token);
+    }
+  } catch (error) {
+    console.error('Failed to save token:', error);
+  }
+};
 
-  return hash;
+const getStoredToken = async (): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(ACCESS_TOKEN_KEY);
+    } else {
+      return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    }
+  } catch (error) {
+    console.error('Failed to get token:', error);
+    return null;
+  }
+};
+
+const removeToken = async (): Promise<void> => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+    } else {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    }
+  } catch (error) {
+    console.error('Failed to remove token:', error);
+  }
 };
 
 interface AuthProviderProps {
@@ -64,70 +164,73 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadStoredUsers = async (): Promise<Record<string, StoredUserData>> => {
+  // Parse user from JWT token
+  const parseUser = (token: string): User | null => {
     try {
-      const storedUsers = await AsyncStorage.getItem(USERS_STORAGE_KEY);
-      return storedUsers ? JSON.parse(storedUsers) : {};
-    } catch (error) {
-      console.error('Failed to load stored users:', error);
-      return {};
-    }
-  };
+      // In a real app, use jwt-decode to decode the token
+      // The mockApi uses a simple base64 encoding for demo purposes
+      const decoded = JSON.parse(atob(token)) as JwtPayload;
 
-  const saveUsers = async (users: Record<string, StoredUserData>): Promise<void> => {
-    try {
-      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+      // Check if token is expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (decoded.exp < currentTime) {
+        return null; // Token expired
+      }
+
+      return {
+        id: decoded.sub,
+        username: decoded.username,
+        email: decoded.email
+      };
     } catch (error) {
-      console.error('Failed to save users:', error);
+      console.error('Failed to parse token:', error);
+      return null;
     }
   };
 
   // Check if user is already logged in on app start
   useEffect(() => {
-    const loadStoredAuth = async (): Promise<void> => {
+    const loadUser = async (): Promise<void> => {
       try {
-        const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
+        const token = await getStoredToken();
 
-        if (storedUser) {
-          const userData: User = JSON.parse(storedUser);
-          setUser(userData);
+        if (token) {
+          const userData = parseUser(token);
+          if (userData) {
+            setUser(userData);
+          } else {
+            // Token is invalid or expired
+            await removeToken();
+          }
         }
       } catch (error) {
-        console.error('Failed to load auth info:', error);
+        console.error('Failed to load user:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadStoredAuth();
+    loadUser();
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      // Get stored users
-      const users = await loadStoredUsers();
-      const userRecord = users[username];
+      const response = await mockApi.login(username, password);
 
-      if (!userRecord) {
+      if (!response || !response.token) {
         return false;
       }
 
-      // Hash the provided password with the stored salt
-      const passwordHash = await hashPassword(password, userRecord.salt);
-      const passwordMatch = passwordHash === userRecord.passwordHash;
+      const userData = parseUser(response.token);
 
-      if (passwordMatch) {
-        // Create user object without the password hash
-        const userData: User = { username };
-
-        setUser(userData);
-
-        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
-
-        return true;
+      if (!userData) {
+        return false;
       }
 
-      return false;
+      setUser(userData);
+      await saveToken(response.token);
+
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -136,44 +239,35 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
 
   const logout = async (): Promise<void> => {
     setUser(null);
-    await AsyncStorage.removeItem(CURRENT_USER_KEY);
+    await removeToken();
   };
 
   const register = async (username: string, password: string): Promise<boolean> => {
     try {
-      if (!username || !password || password.length < 6) {
+      const response = await mockApi.register(username, password);
+
+      if (!response || !response.token) {
         return false;
       }
 
-      const users = await loadStoredUsers();
+      const userData = parseUser(response.token);
 
-      if (users[username]) {
+      if (!userData) {
         return false;
       }
-
-      const salt = await generateSalt();
-
-      const passwordHash = await hashPassword(password, salt);
-
-      const newUser: StoredUserData = {
-        username,
-        passwordHash,
-        salt
-      };
-
-      users[username] = newUser;
-      await saveUsers(users);
-
-      const userData: User = { username };
 
       setUser(userData);
-      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
+      await saveToken(response.token);
 
       return true;
     } catch (error) {
       console.error('Registration error:', error);
       return false;
     }
+  };
+
+  const getToken = async (): Promise<string | null> => {
+    return await getStoredToken();
   };
 
   const value: AuthContextType = {
@@ -183,6 +277,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     logout,
     register,
     isLoggedIn: !!user,
+    getToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

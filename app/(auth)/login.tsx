@@ -52,6 +52,10 @@ export default function LoginScreen(): JSX.Element {
     router.push('/(auth)/register');
   };
 
+  const handleGoogleLogin = (): void => {
+    router.push('/(auth)/google-login');
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ThemedView style={styles.logoContainer}>
@@ -103,11 +107,23 @@ export default function LoginScreen(): JSX.Element {
           <ThemedText style={styles.buttonText}>Create Account</ThemedText>
         </TouchableOpacity>
 
+        <TouchableOpacity
+          style={[styles.button, styles.googleButton]}
+          onPress={handleGoogleLogin}
+          disabled={isLoading}
+        >
+          <ThemedText style={styles.buttonText}>Login with Google</ThemedText>
+        </TouchableOpacity>
+
         {loginAttempts > 0 && (
           <ThemedText style={styles.forgotPasswordText}>
             Forgot your password? Please contact the administrator.
           </ThemedText>
         )}
+
+        <ThemedText style={styles.demoText}>
+          Demo account: username "demo" password "password"
+        </ThemedText>
       </ThemedView>
     </ThemedView>
   );
@@ -134,6 +150,13 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignSelf: 'center',
   },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 30,
+    color: '#1e40af',
+  },
   label: {
     marginBottom: 8,
     fontWeight: '500',
@@ -157,6 +180,9 @@ const styles = StyleSheet.create({
   registerButton: {
     backgroundColor: '#22c55e',
   },
+  googleButton: {
+    backgroundColor: '#ea4335',
+  },
   buttonText: {
     color: 'white',
     fontSize: 16,
@@ -166,5 +192,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     textAlign: 'center',
     color: '#666',
+  },
+  demoText: {
+    marginTop: 30,
+    textAlign: 'center',
+    color: '#888',
+    fontSize: 12,
   },
 });
