@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { StyleSheet, Image, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -18,16 +19,36 @@ export default function RegisterScreen(): JSX.Element {
   const handleRegister = async (): Promise<void> => {
     if (!username || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all required fields');
+=======
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { styles } from '../css/register';
+export default function RegisterScreen(): JSX.Element {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { register } = useAuth();
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+
+  const handleRegister = async () => {
+    if (!username.trim()) {
+      Alert.alert('Error', 'Username is required');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
 
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
       return;
     }
 
@@ -37,6 +58,8 @@ export default function RegisterScreen(): JSX.Element {
     }
 
     setIsLoading(true);
+    setIsSubmitting(true);
+
     try {
       const success = await register(username, password);
 

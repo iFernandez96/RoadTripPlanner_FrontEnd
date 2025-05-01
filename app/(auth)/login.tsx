@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Image, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-
+import { styles } from '../css/login';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,16 @@ export default function LoginScreen(): JSX.Element {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loginAttempts, setLoginAttempts] = useState<number>(0);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  // User null check to redirect authenticated users
+  useEffect(() => {
+    if (user) {
+      router.replace({ pathname: '/' });
+
+    }
+  }, [user]);
+
 
   const handleLogin = async (): Promise<void> => {
     if (!username || !password) {
@@ -65,69 +74,70 @@ export default function LoginScreen(): JSX.Element {
         />
       </ThemedView>
 
-      <ThemedView style={styles.inputContainer}>
-        <ThemedText style={styles.label}>Username</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!isLoading}
-        />
+      <ThemedView style={styles.card}>
 
-        <ThemedText style={styles.label}>Password</ThemedText>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          editable={!isLoading}
-        />
+        <ThemedText style={styles.subtitle}>Sign in to your account</ThemedText>
+        <ThemedView style={styles.inputContainer}>
+          <ThemedText style={styles.label}>Username</ThemedText>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your username"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!isLoading}
+          />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <ThemedText style={styles.buttonText}>Login</ThemedText>
+          <ThemedText style={styles.label}>Password</ThemedText>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!isLoading}
+          />
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <ThemedText style={styles.buttonText}>Login</ThemedText>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.greenButton]}
+            onPress={handleRegister}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.buttonText}>Create Account</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.altButton]}
+            onPress={handleGoogleLogin}
+            disabled={isLoading}
+          >
+            <ThemedText style={styles.buttonText}>Login with Google</ThemedText>
+          </TouchableOpacity>
+
+          {loginAttempts > 0 && (
+            <ThemedText style={styles.helperText}>
+              Forgot your password? Please contact the administrator.
+            </ThemedText>
           )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.registerButton]}
-          onPress={handleRegister}
-          disabled={isLoading}
-        >
-          <ThemedText style={styles.buttonText}>Create Account</ThemedText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.googleButton]}
-          onPress={handleGoogleLogin}
-          disabled={isLoading}
-        >
-          <ThemedText style={styles.buttonText}>Login with Google</ThemedText>
-        </TouchableOpacity>
-
-        {loginAttempts > 0 && (
-          <ThemedText style={styles.forgotPasswordText}>
-            Forgot your password? Please contact the administrator.
-          </ThemedText>
-        )}
-
-        <ThemedText style={styles.demoText}>
-          Demo account: username "demo" password "password"
-        </ThemedText>
-      </ThemedView>
-    </ThemedView>
+        </ThemedView>
+      </ThemedView >
+    </ThemedView >
   );
 }
+<<<<<<< HEAD
 
 const styles = StyleSheet.create({
   container: {
@@ -200,3 +210,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+=======
+>>>>>>> main
