@@ -8,18 +8,18 @@ import { router } from 'expo-router';
 
 
 export default function ProfileScreen() {
-    const [username, setUsername] = useState('initialUsername');
+    const [username, setUsername] = useState('');
     const [newUsername, setNewUsername] = useState('');
-    const [password, setPassword] = useState('initialPassword');
+    const [password, setPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [oldPassword, setOldPassword] = useState('');
     const handleUsernameChange = () => {
-      if(oldPassword==password){
+      if(oldPassword==password&&newUsername!=''){
         setUsername(newUsername);
       }
     }
     const handlePasswordChange = () => {
-      if(oldPassword==password){
+      if(oldPassword==password&&newPassword!=''){
         setPassword(newPassword);
       }
     }
