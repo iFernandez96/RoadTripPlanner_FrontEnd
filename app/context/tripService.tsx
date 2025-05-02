@@ -35,7 +35,7 @@ class TripService {
 
   async createTrip(tripData: TripData): Promise<Trip> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -64,7 +64,7 @@ class TripService {
 
   async getTripById(tripId: number): Promise<Trip> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -90,7 +90,7 @@ class TripService {
 
   async getMultipleTrips(tripIds: number[]): Promise<Trip[]> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -108,7 +108,7 @@ class TripService {
 
   async getUsersTripsId(): Promise<number[]> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
