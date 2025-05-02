@@ -150,5 +150,103 @@ export const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7
-  }
+  },
+   dropdownButton: {
+      backgroundColor: '#f0f0f0',
+      padding: 12,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: '#ddd',
+      marginBottom: 8,
+    },
+    dropdownButtonText: {
+      fontSize: 16,
+      color: '#333',
+    },
+
+    // Modal styles
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    dropdownContainer: {
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 16,
+      width: '90%',
+      maxHeight: '80%',
+    },
+    dropdownHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    dropdownTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    closeButton: {
+      color: '#007bff',
+      fontSize: 16,
+    },
+
+    // Search input
+    searchInput: {
+      borderWidth: 1,
+      borderColor: '#ddd',
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 12,
+    },
+
+    // User list items
+    userItem: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    userName: {
+      fontSize: 16,
+      fontWeight: '500',
+    },
+    userId: {
+      fontSize: 12,
+      color: '#666',
+      marginTop: 4,
+    },
+
+    // Empty and loading states
+    emptyList: {
+      padding: 20,
+      textAlign: 'center',
+      color: '#666',
+    },
+    centerContent: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 20,
+    },
+    loadingText: {
+      marginTop: 10,
+      color: '#666',
+    },
+
+    // Friend item with remove button
+    friendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 4,
+    },
+    removeButton: {
+      color: '#ff3b30',
+      fontSize: 14,
+    },
 });
