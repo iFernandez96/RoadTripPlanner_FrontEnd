@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { styles } from '../css/createTrip';
 import {
   View,
@@ -6,14 +6,32 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  StyleSheet,
   SafeAreaView,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { router } from 'expo-router';
+import tripService from '../context/tripService';
+import authService from '../context/authService';
 
-const CreateTrip = () => {
-  const [newTrip, setNewTrip] = useState({
+interface TripFormData {
+  title: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  start_location: string;
+  end_location: string;
+  stops: string[];
+  notes: string;
+  friends: string[];
+  supplies: string;
+}
+
+const CreateTrip: React.FC = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const [newTrip, setNewTrip] = useState<TripFormData>({
     title: '',
     description: '',
     start_date: '',
@@ -26,16 +44,47 @@ const CreateTrip = () => {
     supplies: ''
   });
 
-  const [currentStop, setCurrentStop] = useState('');
-  const [currentFriend, setCurrentFriend] = useState('');
+  const [currentStop, setCurrentStop] = useState<string>('');
+  const [currentFriend, setCurrentFriend] = useState<string>('');
 
-  const handleAddTrip = () => {
-    if (!newTrip.title || !newTrip.start_date || !newTrip.end_date || !newTrip.start_location || !newTrip.end_location) {
-      Alert.alert('Required Fields', 'Please fill in all the required fields');
+  const handleAddTrip = async () => {
+    if (isSubmitting) return;
+
+    if (!newTrip.title || !newTrip.start_date || !newTrip.start_location || !newTrip.end_location) {
+      Alert.alert('Required Fields', 'Please fill in all the required fields (title, start date, start and end locations)');
       return;
     }
-    console.log('Saving trip:', newTrip);
-    router.replace('/');
+
+    try {
+      setIsLoading(true);
+      setIsSubmitting(true);
+
+      const tripData = {
+        title: newTrip.title,
+        description: newTrip.description || '',
+        start_date: newTrip.start_date,
+        end_date: newTrip.end_date || newTrip.start_date,
+        is_public:true
+      };
+
+      console.log('Sending trip data to API:', JSON.stringify(tripData, null, 2));
+      const result = await tripService.createTrip(tripData);
+
+      console.log('Trip created successfully:', result);
+
+      Alert.alert(
+        'Success',
+        'Trip created successfully!',
+        [{ text: 'OK', onPress: () => router.replace('/') }]
+      );
+    } catch (error: any) {
+      console.error('Error creating trip:', error);
+      Alert.alert('Error', `Failed to create trip: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+      setIsSubmitting(false);
+
+    }
   };
 
   const handleAddStop = () => {
@@ -59,14 +108,37 @@ const CreateTrip = () => {
   };
 
   const onClose = () => {
-    router.back();
+        router.back();
+  };
+
+  const validateAndFormatDate = (dateText: string, field: string): boolean => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (dateText && !dateRegex.test(dateText)) {
+      Alert.alert('Invalid Date', `Please use YYYY-MM-DD format for ${field}`);
+      return false;
+    }
+
+    if (dateText) {
+      const date = new Date(dateText);
+      if (isNaN(date.getTime())) {
+        Alert.alert('Invalid Date', `The ${field} is not a valid date`);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleDateChange = (text: string, field: keyof TripFormData) => {
+    setNewTrip({...newTrip, [field]: text});
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={styles.formContainer}>
-          <Text style={styles.modalTitle}>Add New Trip</Text>
+
+        <ScrollView contentContainerStyle={styles.contentContainer}>
+          <View style={styles.formContainer}>
+            <Text style={styles.modalTitle}>Add New Trip</Text>
 
           <View style={styles.form}>
             <View style={styles.formGroup}>
@@ -79,16 +151,29 @@ const CreateTrip = () => {
               />
             </View>
 
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Description</Text>
+              <TextInput
+                style={[styles.input, {height: 60}]}
+                value={newTrip.description}
+                onChangeText={(text) => setNewTrip({...newTrip, description: text})}
+                placeholder="Brief description of your trip"
+                multiline
+              />
+            </View>
+
             <View style={styles.formRow}>
               <View style={[styles.formGroup, {flex: 1, marginRight: 8}]}>
                 <Text style={styles.label}>Start Date *</Text>
                 <TextInput
                   style={styles.input}
                   value={newTrip.start_date}
-                  onChangeText={(text) => setNewTrip({...newTrip, start_date: text})}
+                  onChangeText={(text) => handleDateChange(text, 'start_date')}
                   placeholder="YYYY-MM-DD"
+                  onBlur={() => validateAndFormatDate(newTrip.start_date, 'Start Date')}
                 />
               </View>
+
 
             </View>
 
@@ -166,6 +251,7 @@ const CreateTrip = () => {
               )}
             </View>
 
+
             <View style={styles.formGroup}>
               <Text style={styles.label}>Supplies</Text>
               <TextInput
@@ -181,20 +267,27 @@ const CreateTrip = () => {
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
                 onPress={onClose}
+                disabled={isLoading}
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.button, styles.saveButton]}
+                style={[styles.button, styles.saveButton, isLoading && styles.disabledButton]}
                 onPress={handleAddTrip}
+                disabled={isLoading}
               >
-                <Text style={styles.buttonText}>Add Trip</Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Add Trip</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+
     </SafeAreaView>
   );
 };
