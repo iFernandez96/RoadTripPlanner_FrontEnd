@@ -34,7 +34,7 @@ class TripService {
 
   async createTrip(tripData: TripData): Promise<Trip> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -62,7 +62,7 @@ class TripService {
   }
 async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -90,7 +90,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
   }
   async addSupplyToTrip(tripId:tripId,supplyData:supplyData): Promise<Addition> {
       try {
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -118,7 +118,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     }
   async getTripById(tripId: number): Promise<Trip> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -144,7 +144,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getMultipleTrips(tripIds: number[]): Promise<Trip[]> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -162,7 +162,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersTripsId(): Promise<number[]> {
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -192,7 +192,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersIds(): Promise<number[]> {
       try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+      const token = "";
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
