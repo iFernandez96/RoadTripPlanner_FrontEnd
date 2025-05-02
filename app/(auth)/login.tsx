@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginScreen(): JSX.Element {
-  const [username, setUsername] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loginAttempts, setLoginAttempts] = useState<number>(0);
@@ -18,20 +18,25 @@ export default function LoginScreen(): JSX.Element {
   useEffect(() => {
     if (user) {
       router.replace({ pathname: '/' });
-
     }
   }, [user]);
 
-
   const handleLogin = async (): Promise<void> => {
-    if (!username || !password) {
-      Alert.alert('Error', 'Please enter both username and password');
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
 
     setIsLoading(true);
     try {
-      const success = await login(username, password);
+      const success = await login(email, password);
 
       if (success) {
         // Login successful - navigation will handle redirecting to the main app
@@ -43,10 +48,10 @@ export default function LoginScreen(): JSX.Element {
         if (newAttempts >= 3) {
           Alert.alert(
             'Login Failed',
-            'Multiple login attempts failed. Please make sure you have the correct username and password.'
+            'Multiple login attempts failed. Please make sure you have the correct email and password.'
           );
         } else {
-          Alert.alert('Login Failed', 'Invalid username or password');
+          Alert.alert('Login Failed', 'Invalid email or password');
         }
       }
     } catch (error) {
@@ -62,7 +67,7 @@ export default function LoginScreen(): JSX.Element {
   };
 
   const handleGoogleLogin = (): void => {
-    router.push('/(auth)/google-login');
+    Alert.alert('Not Available', 'Social login is not available in this version');
   };
 
   return (
@@ -78,12 +83,13 @@ export default function LoginScreen(): JSX.Element {
         <ThemedText style={styles.subtitle}>Sign in to your account</ThemedText>
 
         <ThemedView style={styles.inputContainer}>
-          <ThemedText style={styles.label}>Username</ThemedText>
+          <ThemedText style={styles.label}>Email</ThemedText>
           <TextInput
             style={styles.input}
-            placeholder="Enter your username"
-            value={username}
-            onChangeText={setUsername}
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             editable={!isLoading}
@@ -131,4 +137,3 @@ export default function LoginScreen(): JSX.Element {
     </ThemedView>
   );
 }
-

@@ -3,28 +3,37 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
 
-const API_URL = 'https://roadtrip-planner-api-ddd2dd6834e8.herokuapp.com/api/';
+const API_URL = 'https://roadtrip-planner-api-ddd2dd6834e8.herokuapp.com/';
 
+// Updated User interface to match backend response
 interface User {
-  id: string;
   username: string;
-  email?: string;
+  email: string;
+  fullname?: string;
+  id?: string; // Optional because it might come from JWT instead
 }
 
 interface JwtPayload {
-  sub: string;
-  username: string;
-  email?: string;
-  exp: number;
+  userId?: string; // 'sub' field in JWT
+  email: string;
+  issuedAtTimestamp: number; // 'iat' field in JWT
+  expirationTimestamp: number; // 'exp' field in JWT
+}
+
+// Updated API response interfaces to match backend
+interface AuthResponse {
+  message: string;
+  access_token: string;
+  user: User;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, fullname: string, email: string, password: string) => Promise<boolean>;
   getToken: () => Promise<string | null>;
 }
 
@@ -32,84 +41,46 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'accessToken';
+// Add user storage key
+const USER_KEY = 'userData';
 
-// For demo purposes, simulating API calls
-// In a real app, replace these with actual API calls
-const mockApi = {
-  login: async (username: string, password: string): Promise<{ token: string } | null> => {
-    // Simulate API validation
-    if (username === 'demo' && password === 'password') {
-      // Create a simple JWT that expires in 7 days
-      const payload = {
-        sub: '123456',
-        username: username,
-        email: `${username}@example.com`,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 days
-      };
+// Updated API service for authentication
+const authApi = {
+  login: async (email: string, password: string): Promise<AuthResponse | null> => {
+    try {
+      const response = await fetch(`${API_URL}auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      console.log('Login response:', response);
 
-      // This is a mock JWT, not a real one
-      // In a real app, the server would generate and sign this
-      const token = btoa(JSON.stringify(payload));
-
-      return { token };
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error('API login error:', error);
+      return null;
     }
-
-    // Demo account for quick testing
-    if (username === 'test' && password === 'test') {
-      const payload = {
-        sub: '654321',
-        username: username,
-        email: `${username}@example.com`,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
-      };
-
-      const token = btoa(JSON.stringify(payload));
-      return { token };
-    }
-
-    return null;
   },
 
-  register: async (username: string, password: string): Promise<{ token: string } | null> => {
-    if (username === 'demo' || username === 'admin') {
-      return null; // Username taken
+  register: async (username: string, fullname: string, email: string, password: string): Promise<AuthResponse | null> => {
+    try {
+      const response = await fetch(`${API_URL}auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, fullname, email, password }),
+      });
+
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error('API register error:', error);
+      return null;
     }
-
-    const payload = {
-      sub: Date.now().toString(),
-      username: username,
-      email: `${username}@example.com`,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
-    };
-
-    const token = btoa(JSON.stringify(payload));
-    return { token };
   }
 };
 
-// In a real app, replace the mock API with real API calls
-// Example:
-const api = {
-  login: async (username: string, password: string) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!response.ok) return null;
-    return response.json();
-  },
-  register: async (username: string, password: string) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (!response.ok) return null;
-    return response.json();
-  }
-};
-
+// Token and user storage functions
 const saveToken = async (token: string): Promise<void> => {
   try {
     if (Platform.OS === 'web') {
@@ -119,6 +90,19 @@ const saveToken = async (token: string): Promise<void> => {
     }
   } catch (error) {
     console.error('Failed to save token:', error);
+  }
+};
+
+const saveUser = async (user: User): Promise<void> => {
+  try {
+    const userData = JSON.stringify(user);
+    if (Platform.OS === 'web') {
+      localStorage.setItem(USER_KEY, userData);
+    } else {
+      await SecureStore.setItemAsync(USER_KEY, userData);
+    }
+  } catch (error) {
+    console.error('Failed to save user data:', error);
   }
 };
 
@@ -135,15 +119,33 @@ const getStoredToken = async (): Promise<string | null> => {
   }
 };
 
-const removeToken = async (): Promise<void> => {
+const getStoredUser = async (): Promise<User | null> => {
+  try {
+    let userData: string | null;
+    if (Platform.OS === 'web') {
+      userData = localStorage.getItem(USER_KEY);
+    } else {
+      userData = await SecureStore.getItemAsync(USER_KEY);
+    }
+
+    return userData ? JSON.parse(userData) : null;
+  } catch (error) {
+    console.error('Failed to get user data:', error);
+    return null;
+  }
+};
+
+const removeAuthData = async (): Promise<void> => {
   try {
     if (Platform.OS === 'web') {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
     } else {
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(USER_KEY);
     }
   } catch (error) {
-    console.error('Failed to remove token:', error);
+    console.error('Failed to remove auth data:', error);
   }
 };
 
@@ -163,40 +165,38 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const parseUser = (token: string): User | null => {
+  // Parse the JWT token for validation and possibly additional user data
+  const validateToken = (token: string): boolean => {
     try {
-      // In a real app, use jwt-decode to decode the token
-      // The mockApi uses a simple base64 encoding for demo purposes
-      const decoded = JSON.parse(atob(token)) as JwtPayload;
+      // Use jwt-decode library to decode the JWT
+      const decoded = jwtDecode<JwtPayload>(token);
 
+      // Check if token is expired
       const currentTime = Math.floor(Date.now() / 1000);
       if (decoded.exp < currentTime) {
-        return null;
+        console.log('Token expired');
+        return false;
       }
 
-      return {
-        id: decoded.sub,
-        username: decoded.username,
-        email: decoded.email
-      };
+      return true;
     } catch (error) {
       console.error('Failed to parse token:', error);
-      return null;
+      return false;
     }
   };
 
+  // Load user from stored token and user data on app start
   useEffect(() => {
     const loadUser = async (): Promise<void> => {
       try {
         const token = await getStoredToken();
+        const storedUser = await getStoredUser();
 
-        if (token) {
-          const userData = parseUser(token);
-          if (userData) {
-            setUser(userData);
-          } else {
-            await removeToken();
-          }
+        if (token && storedUser && validateToken(token)) {
+          setUser(storedUser);
+        } else {
+          // Token invalid, expired or user data missing
+          await removeAuthData();
         }
       } catch (error) {
         console.error('Failed to load user:', error);
@@ -208,22 +208,23 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     loadUser();
   }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  // Login function
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await mockApi.login(username, password);
+      const response = await authApi.login(email, password);
 
-      if (!response || !response.token) {
+      if (!response || !response.access_token || !response.user) {
         return false;
       }
 
-      const userData = parseUser(response.token);
-
-      if (!userData) {
+      // Validate the token
+      if (!validateToken(response.access_token)) {
         return false;
       }
 
-      setUser(userData);
-      await saveToken(response.token);
+      setUser(response.user);
+      await saveToken(response.access_token);
+      await saveUser(response.user);
 
       return true;
     } catch (error) {
@@ -232,27 +233,31 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
+  // Logout function
   const logout = async (): Promise<void> => {
     setUser(null);
-    await removeToken();
+    await removeAuthData();
   };
 
-  const register = async (username: string, password: string): Promise<boolean> => {
+  // Register function
+  const register = async (username: string, fullname: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await mockApi.register(username, password);
+      const response = await authApi.register(username, fullname, email, password);
 
-      if (!response || !response.token) {
+      console.log('Register response:', response);
+
+      if (!response || !response.access_token || !response.user) {
         return false;
       }
 
-      const userData = parseUser(response.token);
-
-      if (!userData) {
+      // Validate the token
+      if (!validateToken(response.access_token)) {
         return false;
       }
 
-      setUser(userData);
-      await saveToken(response.token);
+      setUser(response.user);
+      await saveToken(response.access_token);
+      await saveUser(response.user);
 
       return true;
     } catch (error) {
@@ -261,6 +266,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
+  // Get current token
   const getToken = async (): Promise<string | null> => {
     return await getStoredToken();
   };

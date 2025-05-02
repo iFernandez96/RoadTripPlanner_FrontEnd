@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { styles } from '../css/register';
+
 export default function RegisterScreen(): JSX.Element {
   const [username, setUsername] = useState('');
+  const [fullname, setFullname] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,6 +19,7 @@ export default function RegisterScreen(): JSX.Element {
   const colorScheme = useColorScheme();
 
   const handleRegister = async () => {
+    // Input validation
     if (!username.trim()) {
       Alert.alert('Error', 'Username is required');
       return;
@@ -34,15 +38,17 @@ export default function RegisterScreen(): JSX.Element {
     setIsSubmitting(true);
 
     try {
-      const success = await register(username, password);
+      const success = await register(username, fullname, email, password);
+      console.log('Registration success:', success);
 
       if (success) {
+        // Registration successful - navigate to home screen
         router.replace('/');
       } else {
-        Alert.alert('Registration Failed', 'Username may already be taken');
+        Alert.alert('Registration Failed', 'Username may already be taken or the server is unavailable');
       }
     } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      Alert.alert('Error', 'An unexpected error occurred during registration');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -74,6 +80,30 @@ export default function RegisterScreen(): JSX.Element {
               value={username}
               onChangeText={setUsername}
               placeholder="Enter username"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              value={fullname}
+              onChangeText={setFullname}
+              placeholder="Enter your full name"
+              autoCorrect={false}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -124,4 +154,3 @@ export default function RegisterScreen(): JSX.Element {
     </View>
   );
 }
-
