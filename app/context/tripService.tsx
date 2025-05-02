@@ -34,7 +34,7 @@ class TripService {
 
   async createTrip(tripData: TripData): Promise<Trip> {
     try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -62,7 +62,7 @@ class TripService {
   }
 async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -88,9 +88,37 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
       throw error;
     }
   }
+  async addSupplyToTrip(tripId:tripId,supplyData:supplyData): Promise<Addition> {
+      try {
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/trips/${tripId}/supplies`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(supplyData),
+        });
+        console.log(response);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create trip');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error in createTrip:', error);
+        throw error;
+      }
+    }
   async getTripById(tripId: number): Promise<Trip> {
     try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -116,7 +144,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getMultipleTrips(tripIds: number[]): Promise<Trip[]> {
     try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -134,7 +162,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersTripsId(): Promise<number[]> {
     try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -164,7 +192,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersIds(): Promise<number[]> {
       try {
-      const token = "";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Imd1amF2aWVyQGNzdW1iLmVkdSIsInN1YiI6MzQsImlhdCI6MTc0NjEzNjcyNSwiZXhwIjoxNzQ2MjIzMTI1fQ.dlArPc4KUGgcpImnlKyLX0WltmjCSxKUoKvWngYl5zw";
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -192,36 +220,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         throw error;
       }
     }
-async getUsersIds(): Promise<number[]> {
-      try {
-      const token = "";
 
-        if (!token) {
-          throw new Error('Authentication required. Please log in first.');
-        }
-
-        const response = await fetch(`${this.baseUrl}/users`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to fetch user trips');
-        }
-
-        const data = await response.json();
-        console.log(data)
-
-        const userInfo = data.map((item: User) => ({id: item.user_id, username: item.username}));
-        console.log(userInfo)
-        return userInfo;
-      } catch (error) {
-        console.error('Error in getUsersTripsId:', error);
-        throw error;
-      }
-    }
 }
 
 const tripService = new TripService();

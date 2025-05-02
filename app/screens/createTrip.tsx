@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from '../css/createTrip';
+
 import {
   View,
   Text,
@@ -21,6 +22,15 @@ interface User {
   username: string;
 }
 
+type FriendRole = 'member' | 'creator' | 'driver' | 'planner';
+type SupplyCategory = 'food' | 'gear'| 'emergency'| 'clothing'| 'electronics'| 'other';
+interface Supply {
+  name: string;
+  quantity: string;
+  category: SupplyCategory;
+  notes: string;
+}
+
 interface TripFormData {
   title: string;
   description: string;
@@ -30,8 +40,8 @@ interface TripFormData {
   end_location: string;
   stops: string[];
   notes: string;
-  friends: {id: string, username: string}[];
-  supplies: string;
+  friends: {id: string, username: string, role: FriendRole}[];
+  supplies: Supply[];
 }
 
 const CreateTrip: React.FC = () => {
@@ -51,9 +61,17 @@ const CreateTrip: React.FC = () => {
     stops: [],
     notes: '',
     friends: [],
-    supplies: ''
+    supplies: []
   });
 
+  const [newSupply, setNewSupply] = useState<Supply>({
+    name: '',
+    quantity: '',
+    category: 'other',
+    notes: ''
+  });
+
+  const [showSupplyModal, setShowSupplyModal] = useState<boolean>(false);
   const [currentStop, setCurrentStop] = useState<string>('');
 
   useEffect(() => {
@@ -73,11 +91,52 @@ const CreateTrip: React.FC = () => {
     }
   };
 
+  const validateForm = (): boolean => {
+    if (!newTrip.title.trim()) {
+      Alert.alert('Required Field', 'Please enter a trip title');
+      return false;
+    }
+
+    if (!newTrip.start_date) {
+      Alert.alert('Required Field', 'Please enter a start date');
+      return false;
+    }
+
+    if (!validateAndFormatDate(newTrip.start_date, 'Start Date')) {
+      return false;
+    }
+
+    if (newTrip.end_date && !validateAndFormatDate(newTrip.end_date, 'End Date')) {
+      return false;
+    }
+
+    if (newTrip.start_date && newTrip.end_date) {
+      const startDate = new Date(newTrip.start_date);
+      const endDate = new Date(newTrip.end_date);
+
+      if (endDate < startDate) {
+        Alert.alert('Invalid Dates', 'End date cannot be before start date');
+        return false;
+      }
+    }
+
+    if (!newTrip.start_location.trim()) {
+      Alert.alert('Required Field', 'Please enter a start location');
+      return false;
+    }
+
+    if (!newTrip.end_location.trim()) {
+      Alert.alert('Required Field', 'Please enter an end location');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleAddTrip = async () => {
     if (isSubmitting) return;
 
-    if (!newTrip.title || !newTrip.start_date || !newTrip.start_location || !newTrip.end_location) {
-      Alert.alert('Required Fields', 'Please fill in all the required fields (title, start date, start and end locations)');
+    if (!validateForm()) {
       return;
     }
 
@@ -101,7 +160,21 @@ const CreateTrip: React.FC = () => {
       if (newTrip.friends.length > 0) {
         await Promise.all(
           newTrip.friends.map(friend =>
-            handleAddFriendToTrip(result.trip_id, friend.id, 'member')
+            handleAddFriendToTrip(result.trip_id, friend.id, friend.role)
+          )
+        );
+      }
+
+      if (newTrip.supplies.length > 0) {
+        await Promise.all(
+          newTrip.supplies.map(supply =>
+            handleAddSupplyToTrip(
+              result.trip_id,
+              supply.quantity,
+              supply.notes,
+              supply.name,
+              supply.category
+            )
           )
         );
       }
@@ -129,13 +202,65 @@ const CreateTrip: React.FC = () => {
       };
 
       console.log('Adding friend to trip:', JSON.stringify(friendData, null, 2));
-      const result = await tripService.addFriendToTrip(tripId,friendData);
+      const result = await tripService.addFriendToTrip(friendData);
       console.log('Friend added to trip successfully:', result);
       return result;
     } catch (error: any) {
       console.error('Error adding friend to trip:', error);
       return null;
     }
+  };
+
+  const handleAddSupplyToTrip = async (tripId: string, quantity: string, notes: string, name: string, category: SupplyCategory) => {
+    try {
+      const supplyData = {
+        trip_id: tripId,
+        quantity: quantity,
+        notes: notes,
+        new_supply: {
+          name: name,
+          category: category
+        }
+      };
+
+      console.log('Adding supply to trip:', JSON.stringify(supplyData, null, 2));
+      const result = await tripService.addSupplyToTrip(supplyData);
+      console.log('Supply added to trip successfully:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Error adding supply to trip:', error);
+      return null;
+    }
+  };
+
+  const handleAddSupply = () => {
+    if (!newSupply.name.trim()) {
+      Alert.alert('Required Field', 'Please enter a supply name');
+      return;
+    }
+
+    setNewTrip({
+      ...newTrip,
+      supplies: [...newTrip.supplies, { ...newSupply }]
+    });
+
+    setNewSupply({
+      name: '',
+      quantity: '',
+      category: 'other',
+      notes: ''
+    });
+
+    setShowSupplyModal(false);
+  };
+
+  const handleRemoveSupply = (index: number) => {
+    const updatedSupplies = [...newTrip.supplies];
+    updatedSupplies.splice(index, 1);
+    setNewTrip({
+      ...newTrip,
+      supplies: updatedSupplies
+    });
   };
 
   const handleAddStop = () => {
@@ -148,13 +273,36 @@ const CreateTrip: React.FC = () => {
     }
   };
 
+  const handleRemoveStop = (index: number) => {
+    const updatedStops = [...newTrip.stops];
+    updatedStops.splice(index, 1);
+    setNewTrip({
+      ...newTrip,
+      stops: updatedStops
+    });
+  };
+
+  const [selectedUserForRole, setSelectedUserForRole] = useState<User | null>(null);
+  const [showRoleModal, setShowRoleModal] = useState<boolean>(false);
+
   const handleAddFriend = (user: User) => {
-    if (!newTrip.friends.some(friend => friend.id === user.id)) {
+    if (newTrip.friends.some(friend => friend.id === user.id)) {
+      Alert.alert('Already Added', 'This user is already added to the trip');
+      return;
+    }
+
+    setSelectedUserForRole(user);
+    setShowRoleModal(true);
+  };
+
+  const handleRoleSelection = (role: FriendRole) => {
+    if (selectedUserForRole && !newTrip.friends.some(friend => friend.id === selectedUserForRole.id)) {
       setNewTrip({
         ...newTrip,
-        friends: [...newTrip.friends, user]
+        friends: [...newTrip.friends, { ...selectedUserForRole, role }]
       });
     }
+    setShowRoleModal(false);
     setIsDropdownVisible(false);
     setSearchQuery('');
   };
@@ -171,20 +319,21 @@ const CreateTrip: React.FC = () => {
   };
 
   const validateAndFormatDate = (dateText: string, field: string): boolean => {
+    if (!dateText) return true;
+
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-    if (dateText && !dateRegex.test(dateText)) {
-      Alert.alert('Invalid Date', `Please use YYYY-MM-DD format for ${field}`);
+    if (!dateRegex.test(dateText)) {
+      Alert.alert('Invalid Date Format', `Please use YYYY-MM-DD format for ${field}`);
       return false;
     }
 
-    if (dateText) {
-      const date = new Date(dateText);
-      if (isNaN(date.getTime())) {
-        Alert.alert('Invalid Date', `The ${field} is not a valid date`);
-        return false;
-      }
+    const date = new Date(dateText);
+    if (isNaN(date.getTime())) {
+      Alert.alert('Invalid Date', `The ${field} is not a valid date`);
+      return false;
     }
+
     return true;
   };
 
@@ -232,7 +381,16 @@ const CreateTrip: React.FC = () => {
                   value={newTrip.start_date}
                   onChangeText={(text) => handleDateChange(text, 'start_date')}
                   placeholder="YYYY-MM-DD"
-                  onBlur={() => validateAndFormatDate(newTrip.start_date, 'Start Date')}
+                />
+              </View>
+
+              <View style={[styles.formGroup, {flex: 1}]}>
+                <Text style={styles.label}>End Date</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newTrip.end_date}
+                  onChangeText={(text) => handleDateChange(text, 'end_date')}
+                  placeholder="YYYY-MM-DD"
                 />
               </View>
             </View>
@@ -279,7 +437,12 @@ const CreateTrip: React.FC = () => {
                 <View style={styles.listContainer}>
                   <Text style={styles.subLabel}>Added Stops:</Text>
                   {newTrip.stops.map((stop, index) => (
-                    <Text key={index} style={styles.listItem}>• {stop}</Text>
+                    <View key={index} style={styles.friendItem}>
+                      <Text style={styles.listItem}>• {stop}</Text>
+                      <TouchableOpacity onPress={() => handleRemoveStop(index)}>
+                        <Text style={styles.removeButton}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
                   ))}
                 </View>
               )}
@@ -350,7 +513,10 @@ const CreateTrip: React.FC = () => {
                   <Text style={styles.subLabel}>Selected Friends:</Text>
                   {newTrip.friends.map((friend, index) => (
                     <View key={index} style={styles.friendItem}>
-                      <Text style={styles.listItem}>• {friend.username}</Text>
+                      <View style={styles.friendInfo}>
+                        <Text style={styles.listItem}>• {friend.username}</Text>
+                        <Text style={styles.roleTag}>{friend.role}</Text>
+                      </View>
                       <TouchableOpacity onPress={() => handleRemoveFriend(friend.id)}>
                         <Text style={styles.removeButton}>Remove</Text>
                       </TouchableOpacity>
@@ -358,17 +524,166 @@ const CreateTrip: React.FC = () => {
                   ))}
                 </View>
               )}
+
+              <Modal
+                visible={showRoleModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowRoleModal(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.roleModalContainer}>
+                    <View style={styles.dropdownHeader}>
+                      <Text style={styles.dropdownTitle}>Select Role for {selectedUserForRole?.username}</Text>
+                      <TouchableOpacity onPress={() => setShowRoleModal(false)}>
+                        <Text style={styles.closeButton}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.roleButtonsContainer}>
+                      <TouchableOpacity
+                        style={styles.roleButton}
+                        onPress={() => handleRoleSelection('member')}
+                      >
+                        <Text style={styles.roleButtonText}>Member</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.roleButton}
+                        onPress={() => handleRoleSelection('creator')}
+                      >
+                        <Text style={styles.roleButtonText}>Creator</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.roleButton}
+                        onPress={() => handleRoleSelection('driver')}
+                      >
+                        <Text style={styles.roleButtonText}>Driver</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.roleButton}
+                        onPress={() => handleRoleSelection('planner')}
+                      >
+                        <Text style={styles.roleButtonText}>Planner</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </Modal>
             </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Supplies</Text>
-              <TextInput
-                style={[styles.input, {height: 80}]}
-                value={newTrip.supplies}
-                onChangeText={(text) => setNewTrip({...newTrip, supplies: text})}
-                placeholder="List your supplies here"
-                multiline
-              />
+              <TouchableOpacity
+                style={styles.dropdownButton}
+                onPress={() => setShowSupplyModal(true)}
+              >
+                <Text style={styles.dropdownButtonText}>
+                  {newTrip.supplies.length > 0 ? `${newTrip.supplies.length} supply item(s) added` : 'Add supplies'}
+                </Text>
+              </TouchableOpacity>
+
+              <Modal
+                visible={showSupplyModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowSupplyModal(false)}
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.dropdownContainer}>
+                    <View style={styles.dropdownHeader}>
+                      <Text style={styles.dropdownTitle}>Add Supply</Text>
+                      <TouchableOpacity onPress={() => setShowSupplyModal(false)}>
+                        <Text style={styles.closeButton}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.label}>Name *</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={newSupply.name}
+                        onChangeText={(text) => setNewSupply({...newSupply, name: text})}
+                        placeholder="Supply name"
+                      />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.label}>Quantity</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={newSupply.quantity}
+                        onChangeText={(text) => setNewSupply({...newSupply, quantity: text})}
+                        placeholder="How many?"
+                      />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.label}>Category</Text>
+                      <View style={styles.categoryContainer}>
+                        {['food', 'gear', 'emergency', 'clothing', 'electronics', 'other'].map((cat) => (
+                          <TouchableOpacity
+                            key={cat}
+                            style={[
+                              styles.categoryButton,
+                              newSupply.category === cat && styles.categoryButtonSelected
+                            ]}
+                            onPress={() => setNewSupply({...newSupply, category: cat as SupplyCategory})}
+                          >
+                            <Text
+                              style={[
+                                styles.categoryButtonText,
+                                newSupply.category === cat && styles.categoryButtonTextSelected
+                              ]}
+                            >
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                      <Text style={styles.label}>Notes</Text>
+                      <TextInput
+                        style={[styles.input, {height: 60}]}
+                        value={newSupply.notes}
+                        onChangeText={(text) => setNewSupply({...newSupply, notes: text})}
+                        placeholder="Additional notes"
+                        multiline
+                      />
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={handleAddSupply}
+                    >
+                      <Text style={styles.buttonText}>Add Supply</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </Modal>
+
+              {newTrip.supplies.length > 0 && (
+                <View style={styles.listContainer}>
+                  <Text style={styles.subLabel}>Added Supplies:</Text>
+                  {newTrip.supplies.map((supply, index) => (
+                    <View key={index} style={styles.supplyItem}>
+                      <View style={styles.supplyInfo}>
+                        <Text style={styles.listItem}>
+                          • {supply.name} {supply.quantity ? `(${supply.quantity})` : ''}
+                        </Text>
+                        <Text style={styles.categoryTag}>{supply.category}</Text>
+                      </View>
+                      <TouchableOpacity onPress={() => handleRemoveSupply(index)}>
+                        <Text style={styles.removeButton}>Remove</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
 
             <View style={styles.modalButtons}>

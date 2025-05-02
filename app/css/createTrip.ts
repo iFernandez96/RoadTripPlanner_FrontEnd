@@ -238,7 +238,6 @@ export const styles = StyleSheet.create({
       color: '#666',
     },
 
-    // Friend item with remove button
     friendItem: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -248,5 +247,108 @@ export const styles = StyleSheet.create({
     removeButton: {
       color: '#ff3b30',
       fontSize: 14,
-    },
+    },friendInfo: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          flex: 1,
+        },
+        roleTag: {
+          backgroundColor: '#e0e0e0',
+          paddingHorizontal: 8,
+          paddingVertical: 2,
+          borderRadius: 12,
+          marginLeft: 8,
+          fontSize: 12,
+          color: '#666',
+        },
+        roleModalContainer: {
+          backgroundColor: 'white',
+          borderRadius: 12,
+          padding: 16,
+          width: '80%',
+          maxHeight: '60%',
+        },
+        roleButtonsContainer: {
+          marginTop: 16,
+        },
+        roleButton: {
+          backgroundColor: '#f0f0f0',
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 8,
+          alignItems: 'center',
+        },
+        roleButtonText: {
+          fontSize: 16,
+          color: '#333',
+        },categoryContainer: {
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              marginTop: 8,
+              marginBottom: 16,
+            },
+            categoryButton: {
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 16,
+              backgroundColor: '#f0f0f0',
+              marginRight: 8,
+              marginBottom: 8,
+              borderWidth: 1,
+              borderColor: '#e0e0e0',
+            },
+            categoryButtonSelected: {
+              backgroundColor: '#3498db',
+              borderColor: '#2980b9',
+            },
+            categoryButtonText: {
+              fontSize: 14,
+              color: '#333',
+            },
+            categoryButtonTextSelected: {
+              color: '#fff',
+              fontWeight: '500',
+            },
+
+            // Supply item display styles
+            supplyItem: {
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingVertical: 6,
+              borderBottomWidth: 1,
+              borderBottomColor: '#f0f0f0',
+            },
+            supplyInfo: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              flex: 1,
+            },
+            categoryTag: {
+              fontSize: 12,
+              backgroundColor: '#e1f5fe',
+              color: '#0288d1',
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 12,
+              marginLeft: 8,
+              overflow: 'hidden',
+            },
+
+            // Additional styles for better UI
+            roleTag: {
+              fontSize: 12,
+              backgroundColor: '#e8f5e9',
+              color: '#2e7d32',
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 12,
+              marginLeft: 8,
+              overflow: 'hidden',
+            },
+            friendInfo: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              flex: 1,
+            },
 });
