@@ -44,7 +44,8 @@ const ACCESS_TOKEN_KEY = 'accessToken';
 // Add user storage key
 const USER_KEY = 'userData';
 
-// Updated API service for authentication
+// Remove the hashPassword function since we'll send raw passwords to the server
+
 const authApi = {
   login: async (email: string, password: string): Promise<AuthResponse | null> => {
     try {
@@ -208,7 +209,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     loadUser();
   }, []);
 
-  // Login function
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const response = await authApi.login(email, password);
@@ -217,7 +217,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         return false;
       }
 
-      // Validate the token
       if (!validateToken(response.access_token)) {
         return false;
       }
@@ -239,7 +238,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     await removeAuthData();
   };
 
-  // Register function
   const register = async (username: string, fullname: string, email: string, password: string): Promise<boolean> => {
     try {
       const response = await authApi.register(username, fullname, email, password);
@@ -250,7 +248,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         return false;
       }
 
-      // Validate the token
       if (!validateToken(response.access_token)) {
         return false;
       }
