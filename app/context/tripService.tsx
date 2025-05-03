@@ -34,7 +34,7 @@ class TripService {
 
   async createTrip(tripData: TripData): Promise<Trip> {
     try {
-      const token = "";
+  const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -60,9 +60,65 @@ class TripService {
       throw error;
     }
   }
+  async createStint(stintData: stintData): Promise<Trip> {
+      try {
+  const token = "";
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/stints`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(stintData),
+        });
+        console.log(response);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create initial stint');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error in createStint:', error);
+        throw error;
+      }
+    }
+async createStop(stopData: stopData): Promise<Trip> {
+      try {
+  const token = "";
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/stops`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(stopData),
+        });
+        console.log(response);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create initial stint');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error in createStop:', error);
+        throw error;
+      }
+    }
 async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     try {
-      const token = "";
+  const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -90,7 +146,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
   }
   async addSupplyToTrip(tripId:tripId,supplyData:supplyData): Promise<Addition> {
       try {
-      const token = "";
+  const token = "";
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -107,18 +163,18 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         console.log(response);
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to create trip');
+          throw new Error(errorData.message || 'Failed to addSupplyToTrip ');
         }
 
         return await response.json();
       } catch (error) {
-        console.error('Error in createTrip:', error);
+        console.error('Error in addSupplyToTrip:', error);
         throw error;
       }
     }
   async getTripById(tripId: number): Promise<Trip> {
     try {
-      const token = "";
+  const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -144,7 +200,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getMultipleTrips(tripIds: number[]): Promise<Trip[]> {
     try {
-      const token = "";
+  const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -162,7 +218,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersTripsId(): Promise<number[]> {
     try {
-      const token = "";
+  const token = "";
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -192,7 +248,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersIds(): Promise<number[]> {
       try {
-      const token = "";
+  const token = "";
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -217,6 +273,37 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         return userInfo;
       } catch (error) {
         console.error('Error in getUsersTripsId:', error);
+        throw error;
+      }
+    }
+async getLocationCoord(location: location): Promise<LocationCoord[]> {
+      try {
+  const token = "";
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/locations/geocode`, {
+          method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(location),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch user trips');
+        }
+
+        const data = await response.json();
+        const LocationCoord = data;
+        console.log(LocationCoord);
+        return LocationCoord;
+      } catch (error) {
+        console.error('Error in getLocationCoord:', error);
         throw error;
       }
     }
