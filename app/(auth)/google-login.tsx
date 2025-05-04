@@ -24,7 +24,7 @@ export default function GoogleLoginScreen() {
         try {
           await SecureStore.setItemAsync('userToken', token);
           Alert.alert('Success', 'You are now logged in!');
-          router.replace('/(tabs)/google-profile');
+          router.replace('/(tabs)/profile');
         } catch (error) {
           Alert.alert('Error', 'Failed to save token');
         }

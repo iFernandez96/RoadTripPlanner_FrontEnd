@@ -17,7 +17,7 @@ export default function LoginScreen(): JSX.Element {
   // User null check to redirect authenticated users
   useEffect(() => {
     if (user) {
-      router.replace({ pathname: '/' });
+      router.replace({ pathname: '/(tabs)/profile' });
 
     }
   }, [user]);

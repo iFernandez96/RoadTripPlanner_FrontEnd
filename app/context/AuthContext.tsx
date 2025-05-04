@@ -1,6 +1,16 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
+import { jwtDecode } from 'jwt-decode';
+
+interface DecodedToken {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
 
 interface User {
   username: string;
@@ -83,21 +93,63 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   };
 
   // Check if user is already logged in on app start
+  // useEffect(() => {
+  //   const loadStoredAuth = async (): Promise<void> => {
+  //     try {
+  //       const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
+
+  //       if (storedUser) {
+  //         const userData: User = JSON.parse(storedUser);
+  //         setUser(userData);
+  //       }
+  //     } catch (error) {
+  //       console.error('Failed to load auth info:', error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   loadStoredAuth();
+  // }, []);
+
   useEffect(() => {
     const loadStoredAuth = async (): Promise<void> => {
-      try {
-        const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
-
-        if (storedUser) {
-          const userData: User = JSON.parse(storedUser);
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error('Failed to load auth info:', error);
-      } finally {
-        setIsLoading(false);
+    try {
+      let token: string | null = null;
+  
+      // Get token depending on platform
+      if (typeof window !== 'undefined') {
+        token = localStorage.getItem('userToken');
+      } else {
+        token = await SecureStore.getItemAsync('userToken');
       }
-    };
+  
+      if (token) {
+        try {
+          const decoded: DecodedToken = jwtDecode(token);
+          if (decoded?.email) {
+            const userData: User = { username: decoded.email };
+            setUser(userData);
+            return;
+          }
+        } catch (err) {
+          console.error('Failed to decode token:', err);
+        }
+      }
+  
+      // Fallback to legacy login
+      const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
+      if (storedUser) {
+        const userData: User = JSON.parse(storedUser);
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error('Failed to load auth info:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+   
 
     loadStoredAuth();
   }, []);

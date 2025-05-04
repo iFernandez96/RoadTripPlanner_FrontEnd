@@ -20,7 +20,7 @@ export default function GoogleWebRedirect() {
       if (typeof token === 'string') {
         await storeToken(token);
         Alert.alert('Success', 'You are now logged in!');
-        router.replace('/(tabs)/google-profile');
+        router.replace('/(tabs)/profile');
       } else {
         Alert.alert('Error', 'No token received');
         router.replace('/');
