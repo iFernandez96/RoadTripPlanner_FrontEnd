@@ -49,10 +49,12 @@ const USER_KEY = 'userData';
 const authApi = {
   login: async (email: string, password: string): Promise<AuthResponse | null> => {
     try {
-      const response = await fetch(`${API_URL}auth/login`, {
+      const requestBody = { email, password };
+      console.log('Login request payload:', requestBody);
+      const response = await fetch(`${API_URL}auth/loginPlain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(requestBody),
       });
       console.log('Login response:', response);
 
