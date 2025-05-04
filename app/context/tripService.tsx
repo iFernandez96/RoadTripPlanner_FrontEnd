@@ -34,7 +34,7 @@ class TripService {
 
   async createTrip(tripData: TripData): Promise<Trip> {
     try {
-  const token = "";
+  const token = authService.getToken();
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -62,7 +62,7 @@ class TripService {
   }
   async createStint(stintData: stintData): Promise<Trip> {
       try {
-  const token = "";
+  const token = authService.getToken();
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -90,7 +90,7 @@ class TripService {
     }
 async createStop(stopData: stopData): Promise<Trip> {
       try {
-  const token = "";
+  const token = authService.getToken();
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -118,7 +118,7 @@ async createStop(stopData: stopData): Promise<Trip> {
     }
 async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     try {
-  const token = "";
+  const token = authService.getToken();
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -146,7 +146,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
   }
   async addSupplyToTrip(tripId:tripId,supplyData:supplyData): Promise<Addition> {
       try {
-  const token = "";
+  const token = authService.getToken();
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -174,7 +174,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     }
   async getTripById(tripId: number): Promise<Trip> {
     try {
-  const token = "";
+  const token = authService.getToken();
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -200,7 +200,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getMultipleTrips(tripIds: number[]): Promise<Trip[]> {
     try {
-  const token = "";
+  const token = authService.getToken();
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -218,7 +218,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersTripsId(): Promise<number[]> {
     try {
-  const token = "";
+  const token = authService.getToken();
 
       if (!token) {
         throw new Error('Authentication required. Please log in first.');
@@ -248,7 +248,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
 
   async getUsersIds(): Promise<number[]> {
       try {
-  const token = "";
+  const token = authService.getToken();
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -278,7 +278,7 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
     }
 async getLocationCoord(location: location): Promise<LocationCoord[]> {
       try {
-  const token = "";
+  const token = authService.getToken();
 
         if (!token) {
           throw new Error('Authentication required. Please log in first.');
@@ -307,7 +307,90 @@ async getLocationCoord(location: location): Promise<LocationCoord[]> {
         throw error;
       }
     }
+async getSuppliesById(TripId: number): Promise<suppliesData[]> {
+      try {
+  const token = authService.getToken();
 
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/trips/${TripId}/supplies`, {
+         headers: {
+                     'Authorization': `Bearer ${token}`
+                   }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch supplies');
+        }
+
+        const data = await response.json();
+        const suppliesData = data;
+        console.log(suppliesData);
+        return suppliesData;
+      } catch (error) {
+        console.error('Error in getSuppliesById:', error);
+        throw error;
+      }
+    }
+async getParticipantsById(TripId: number): Promise<participantsData[]> {
+      try {
+  const token = authService.getToken();
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/trips/${TripId}/participants`, {
+         headers: {
+                     'Authorization': `Bearer ${token}`
+                   }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch participants');
+        }
+
+        const data = await response.json();
+        const participantsData = data;
+        console.log(participantsData);
+        return participantsData;
+      } catch (error) {
+        console.error('Error in getParticipantsById:', error);
+        throw error;
+      }
+    }
+async getUserById(UserId: number): Promise<userData[]> {
+      try {
+  const token = authService.getToken();
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/users/${UserId}`, {
+         headers: {
+                     'Authorization': `Bearer ${token}`
+                   }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch userData');
+        }
+
+        const data = await response.json();
+        const userData = data;
+        console.log(userData);
+        return userData;
+      } catch (error) {
+        console.error('Error in getUserById:', error);
+        throw error;
+      }
+    }
 }
 
 const tripService = new TripService();

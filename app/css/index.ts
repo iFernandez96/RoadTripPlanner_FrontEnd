@@ -324,6 +324,135 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)'
+  },
+  modalView: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 5
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top'
+  },
+  buttonContainer1: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10
+  },
+  button1: {
+    borderRadius: 5,
+    padding: 12,
+    width: '48%',
+    alignItems: 'center'
+  },
+  cancelButton1: {
+    backgroundColor: '#f0f0f0'
+  },
+  createButton1: {
+    backgroundColor: '#0066cc'
+  },
+  cancelButtonText1: {
+    fontWeight: '500',
+    color: '#333'
+  },
+  createButtonText1: {
+    fontWeight: '500',
+    color: 'white'
+  },
+
+  /* New styles for trip options */
+  tripHeader: {
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  tripOptionsContainer: {
+    backgroundColor: '#f1f5f9',
+    padding: 16,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  optionButton: {
+    backgroundColor: 'white',
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  optionButtonText: {
+    color: '#3b82f6',
+    fontWeight: '600',
+    textAlign: 'center',
+    fontSize: 15,
+  },
+  viewDetailsOption: {
+    backgroundColor: '#eff6ff',  // Light blue
+    borderColor: '#dbeafe',
+  },
+  addStintOption: {
+    backgroundColor: '#ecfdf5',  // Light green
+    borderColor: '#d1fae5',
+  },
+  addStopsOption: {
+    backgroundColor: '#fff7ed',  // Light orange
+    borderColor: '#ffedd5',
+  },
+  addSuppliesOption: {
+    backgroundColor: '#f5f3ff',  // Light purple
+    borderColor: '#ede9fe',
+  },
+  headerButtonContainer: {
+    flexDirection: 'row',
+  },
+  refreshButton: {
+    backgroundColor: '#10b981',
+    marginRight: 10,
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 8,
+    color: '#64748b',
+    fontWeight: '500',
+  },
+  errorContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#ef4444',
+    textAlign: 'center',
+    fontWeight: '500',
+  }
 });
 
 export default styles;

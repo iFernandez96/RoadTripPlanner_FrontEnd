@@ -53,9 +53,7 @@ interface TripFormData {
 
 const AdditionsTrip: React.FC = () => {
   const params = useLocalSearchParams();
-  // Convert string params to numbers
   const tripId = typeof params.tripId === 'string' ? parseInt(params.tripId, 10) : 0;
-  const stintId = typeof params.stintId === 'string' ? parseInt(params.stintId, 10) : 0;
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -85,22 +83,13 @@ const AdditionsTrip: React.FC = () => {
 
   const [showSupplyModal, setShowSupplyModal] = useState<boolean>(false);
   const [currentStop, setCurrentStop] = useState<string>('');
-  const [showStopsModal, setShowStopsModal] = useState<boolean>(false);
-  const [newStop, setNewStop] = useState<Stop>({
-    name: '',
-    type: 'pitstop',
-    notes: ''
-  });
+
 
   useEffect(() => {
     fetchUsers();
-    console.log("Received params - tripId:", tripId, "stintId:", stintId);
+    console.log("Received params - tripId:", tripId);
 
-    // Validate tripId and stintId
-    if (isNaN(tripId) || isNaN(stintId) || tripId <= 0 || stintId <= 0) {
-      Alert.alert('Invalid Parameters', 'Trip ID or Stint ID is invalid');
-    }
-  }, [tripId, stintId]);
+  }, [tripId]);
 
   const fetchUsers = async () => {
     try {
@@ -122,39 +111,6 @@ const AdditionsTrip: React.FC = () => {
       setIsLoading(true);
       setIsSubmitting(true);
 
-      if (isNaN(tripId) || isNaN(stintId) || tripId <= 0 || stintId <= 0) {
-        Alert.alert('Error', 'Trip ID or Stint ID is invalid');
-        setIsLoading(false);
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (newTrip.stops.length > 0) {
-        for (let i = 0; i < newTrip.stops.length; i++) {
-          const stop = newTrip.stops[i];
-          const stopType: StopType = "pitstop";
-
-          await handleAddStopToTrip(
-            tripId,
-            stopType,
-            stintId,
-            stop,
-            "Intermediate stop",
-            30
-          );
-        }
-      }
-
-      if (newTrip.end_location && newTrip.end_location !== newTrip.start_location) {
-        await handleAddFinalStopToTrip(
-          tripId,
-          'other',
-          stintId,
-          newTrip.end_location,
-          "end",
-          30
-        );
-      }
 
       if (newTrip.friends.length > 0) {
         await Promise.all(
@@ -193,101 +149,6 @@ const AdditionsTrip: React.FC = () => {
     }
   };
 
-  const handleAddStopToTrip = async (
-    tripId: number,
-    stopType: StopType,
-    stintId: number,
-    name: string,
-    notes: string,
-    duration: number | string
-  ) => {
-    try {
-      const location = {
-        address: name
-      };
-      const locationResponse = await tripService.getLocationCoord(location);
-
-      const locationItem = locationResponse.location;
-      const address = locationItem.address;
-      const city = locationItem.city || '';
-      const state = locationItem.state || '';
-      const postalCode = locationItem.postal_code || '';
-      const latitude = locationItem.latitude;
-      const longitude = locationItem.longitude;
-
-      const stopData = {
-        name: name,
-        latitude: latitude,
-        longitude: longitude,
-        address: address,
-        stop_type: stopType,
-        duration: duration,
-        notes: notes,
-        trip_id: tripId,
-        stint_id: stintId,
-        city: city,
-        state: state,
-        postal_code: postalCode
-      };
-
-      console.log('Adding Stop to trip:', JSON.stringify(stopData, null, 2));
-      const result = await tripService.createStop(stopData);
-      console.log('Stop added to trip successfully:', result);
-      return result;
-    } catch (error: any) {
-      console.error('Error adding stop to trip:', error);
-      Alert.alert('Error', `Failed to add stop: ${error.message}`);
-      return null;
-    }
-  };
-
-  const handleAddFinalStopToTrip = async (
-    tripId: number,
-    stopType: StopType,
-    stintId: number,
-    name: string,
-    notes: string,
-    duration: number | string
-  ) => {
-    try {
-      const location = {
-        address: name
-      };
-      const locationResponse = await tripService.getLocationCoord(location);
-
-      const locationItem = locationResponse.location;
-      const address = locationItem.address;
-      const city = locationItem.city || '';
-      const state = locationItem.state || '';
-      const postalCode = locationItem.postal_code || '';
-      const latitude = locationItem.latitude;
-      const longitude = locationItem.longitude;
-
-      const stopData = {
-        name: name,
-        latitude: latitude,
-        longitude: longitude,
-        address: address,
-        stop_type: stopType,
-        duration: duration,
-        notes: notes,
-        trip_id: tripId,
-        stint_id: stintId,
-        city: city,
-        state: state,
-        postal_code: postalCode
-      };
-
-      console.log('Adding Final Stop to trip:', JSON.stringify(stopData, null, 2));
-      const result = await tripService.createStop(stopData);
-      console.log('Final Stop added to trip successfully:', result);
-      return result;
-    } catch (error: any) {
-      console.error('Error adding final stop to trip:', error);
-      Alert.alert('Error', `Failed to add final stop: ${error.message}`);
-      return null;
-    }
-  };
 
   const handleAddFriendToTrip = async (tripId: number, userId: string, role: string) => {
     try {
@@ -359,53 +220,6 @@ const AdditionsTrip: React.FC = () => {
     });
   };
 
-  const handleAddStop = () => {
-    if (currentStop.trim()) {
-      setNewTrip({
-        ...newTrip,
-        stops: [...newTrip.stops, currentStop.trim()]
-      });
-      setCurrentStop('');
-    }
-  };
-
-  const openStopsModal = () => {
-    setNewStop({
-      name: '',
-      type: 'pitstop',
-      notes: ''
-    });
-    setShowStopsModal(true);
-  };
-
-  const handleAddStopFromModal = () => {
-    if (!newStop.name.trim()) {
-      Alert.alert('Required Field', 'Please enter a stop name');
-      return;
-    }
-
-    setNewTrip({
-      ...newTrip,
-      stops: [...newTrip.stops, newStop.name.trim()]
-    });
-
-    setNewStop({
-      name: '',
-      type: 'pitstop',
-      notes: ''
-    });
-
-    setShowStopsModal(false);
-  };
-
-  const handleRemoveStop = (index: number) => {
-    const updatedStops = [...newTrip.stops];
-    updatedStops.splice(index, 1);
-    setNewTrip({
-      ...newTrip,
-      stops: updatedStops
-    });
-  };
 
   const [selectedUserForRole, setSelectedUserForRole] = useState<User | null>(null);
   const [showRoleModal, setShowRoleModal] = useState<boolean>(false);
@@ -442,29 +256,9 @@ const AdditionsTrip: React.FC = () => {
   const onClose = () => {
     router.back();
   };
-
-  const validateAndFormatDate = (dateText: string, field: string): boolean => {
-    if (!dateText) return true;
-
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-    if (!dateRegex.test(dateText)) {
-      Alert.alert('Invalid Date Format', `Please use YYYY-MM-DD format for ${field}`);
-      return false;
-    }
-
-    const date = new Date(dateText);
-    if (isNaN(date.getTime())) {
-      Alert.alert('Invalid Date', `The ${field} is not a valid date`);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleDateChange = (text: string, field: keyof TripFormData) => {
-    setNewTrip({...newTrip, [field]: text});
-  };
+const onSkip = () => {
+      router.push('/');
+    };
 
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -473,118 +267,9 @@ const AdditionsTrip: React.FC = () => {
     <SafeAreaView style={styles.container}>
         <ScrollView contentContainerStyle={styles.contentContainer}>
           <View style={styles.formContainer}>
-            <Text style={styles.modalTitle}>Add Trip Details</Text>
+            <Text style={styles.modalTitle}>Add Trip Friends & Supplies</Text>
 
           <View style={styles.form}>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>End Location</Text>
-              <TextInput
-                style={styles.input}
-                value={newTrip.end_location}
-                onChangeText={(text) => setNewTrip({...newTrip, end_location: text})}
-                placeholder="Where your trip ends"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Add Stops:</Text>
-
-
-              <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={openStopsModal}
-              >
-                <Text style={styles.dropdownButtonText}>
-                  Add detailed stop
-                </Text>
-              </TouchableOpacity>
-
-              <Modal
-                visible={showStopsModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setShowStopsModal(false)}
-              >
-                <View style={styles.modalOverlay}>
-                  <View style={styles.dropdownContainer}>
-                    <View style={styles.dropdownHeader}>
-                      <Text style={styles.dropdownTitle}>Add Stop</Text>
-                      <TouchableOpacity onPress={() => setShowStopsModal(false)}>
-                        <Text style={styles.closeButton}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Name *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={newStop.name}
-                        onChangeText={(text) => setNewStop({...newStop, name: text})}
-                        placeholder="Stop name"
-                      />
-                    </View>
-
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Type</Text>
-                      <View style={styles.categoryContainer}>
-                        {['pitstop', 'overnight', 'gas', 'food', 'attraction', 'other'].map((type) => (
-                          <TouchableOpacity
-                            key={type}
-                            style={[
-                              styles.categoryButton,
-                              newStop.type === type && styles.categoryButtonSelected
-                            ]}
-                            onPress={() => setNewStop({...newStop, type: type as StopType})}
-                          >
-                            <Text
-                              style={[
-                                styles.categoryButtonText,
-                                newStop.type === type && styles.categoryButtonTextSelected
-                              ]}
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Notes</Text>
-                      <TextInput
-                        style={[styles.input, {height: 60}]}
-                        value={newStop.notes}
-                        onChangeText={(text) => setNewStop({...newStop, notes: text})}
-                        placeholder="Additional notes"
-                        multiline
-                      />
-                    </View>
-
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={handleAddStopFromModal}
-                    >
-                      <Text style={styles.cancelButtonText}>Add Stop</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-
-              {newTrip.stops.length > 0 && (
-                <View style={styles.listContainer}>
-                  <Text style={styles.subLabel}>Added Stops:</Text>
-                  {newTrip.stops.map((stop, index) => (
-                    <View key={index} style={styles.friendItem}>
-                      <Text style={styles.listItem}>• {stop}</Text>
-                      <TouchableOpacity onPress={() => handleRemoveStop(index)}>
-                        <Text style={styles.removeButton}>Remove</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Add Friends:</Text>
@@ -833,7 +518,13 @@ const AdditionsTrip: React.FC = () => {
               >
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-
+<TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={onSkip}
+                disabled={isLoading}
+              >
+                <Text style={styles.cancelButtonText}>Skip For Now</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.saveButton, isLoading && styles.disabledButton]}
                 onPress={handleAddTrip}
