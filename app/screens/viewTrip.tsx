@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { styles } from '../css/viewTrip';
+import tripService from '../context/tripService';
 
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   Alert
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 interface Trip {
   id: number;
@@ -26,34 +26,166 @@ interface Trip {
   supplies: string;
 }
 
-const sampleTrip: Trip = {
-  id: 1,
-  title: "Pacific Coast Highway",
-  description: "",
-  start_date: "2025-06-01",
-  end_date: "2025-06-10",
-  start_location: "San Francisco",
-  end_location: "San Diego",
-  stops: ["Monterey", "Big Sur", "Santa Barbara", "Los Angeles"],
-  notes: "",
-  friends: ["Alex", "Jordan"],
-  supplies: "Sunscreen, hiking shoes, camera, beach towels"
-};
+interface Supply {
+  supply_id: number;
+  name: string;
+  category: string;
+  created_at: string;
+  quantity: number;
+  notes: string;
+}
+
+interface User {
+  user_id: number;
+  username: string;
+  fullname: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Participant {
+  user_id: number;
+}
 
 const ViewTrip = () => {
-  const [trip, setTrip] = useState<Trip>(sampleTrip);
-  useEffect(() => {
+  const params = useLocalSearchParams();
+  const tripId = typeof params.tripId === 'string' ? parseInt(params.tripId, 10) : 0;
 
-    setTrip(sampleTrip);
-  }, []);
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [supplies, setSupplies] = useState<Supply[]>([]);
+  const [participants, setParticipants] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTripData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch trip metadata
+        const tripData = await retrieveTripData();
+
+        // Fetch supplies
+        const suppliesData = await retrieveTripSupplyData();
+
+        // Fetch participants
+        const participantsData = await retrieveTripParticipantsData();
+
+        if (tripData) {
+          setTrip(tripData);
+        }
+
+        if (suppliesData) {
+          setSupplies(Array.isArray(suppliesData) ? suppliesData : [suppliesData]);
+        }
+
+        if (participantsData) {
+          setParticipants(Array.isArray(participantsData) ? participantsData : [participantsData]);
+        }
+      } catch (error) {
+        console.error('Error fetching trip data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTripData();
+  }, [tripId]);
+
+  const retrieveTripData = async () => {
+    try {
+      console.log('Retrieving trip meta data:', tripId);
+      const result = await tripService.getTripById(tripId);
+      console.log('Retrieved trip meta data successfully:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Error retrieving trip meta data:', error);
+      Alert.alert('Error', `Failed retrieving trip meta data: ${error.message}`);
+      return null;
+    }
+  };
+
+  const retrieveTripSupplyData = async () => {
+    try {
+      console.log('Retrieving trip supplies meta data:', tripId);
+      const result = await tripService.getSuppliesById(tripId);
+      console.log('Retrieved trip supplies meta data successfully:', result);
+      return result;
+    } catch (error: any) {
+      console.error('Error retrieving trip supplies meta data:', error);
+      Alert.alert('Error', `Failed retrieving trip supplies meta data: ${error.message}`);
+      return null;
+    }
+  };
+
+  const retrieveTripParticipantsData = async () => {
+    try {
+      console.log('Retrieving trip participants meta data:', tripId);
+      const participantsResult = await tripService.getParticipantsById(tripId);
+      console.log('Retrieved trip participants meta data successfully:', participantsResult);
+
+      // If we have participants, get each user's details
+      if (participantsResult) {
+        const userDetailsPromises = Array.isArray(participantsResult)
+          ? participantsResult.map((participant: Participant) => tripService.getUserById(participant.user_id))
+          : [tripService.getUserById(participantsResult.user_id)];
+
+        const userDetails = await Promise.all(userDetailsPromises);
+        console.log('Retrieved user details successfully:', userDetails);
+        return userDetails;
+      }
+      return [];
+    } catch (error: any) {
+      console.error('Error retrieving trip participants meta data:', error);
+      Alert.alert('Error', `Failed retrieving trip participants meta data: ${error.message}`);
+      return [];
+    }
+  };
 
   const onClose = () => {
     router.back();
   };
 
   const handleEditTrip = () => {
-      router.push('/screens/editTrip');
+    router.push({
+      pathname: '/screens/editTrip',
+      params: { trip: tripId.toString() }
+    });
   };
+
+  const handleAdditionsTrip = () => {
+    router.push({
+      pathname: '/screens/additionsTrips',
+      params: { trip: tripId.toString() }
+    });
+  };
+
+  // Show loading state while fetching data
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.loadingText}>Loading trip details...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error message if trip data couldn't be loaded
+  if (!trip) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.contentContainer}>
+          <Text style={styles.errorText}>Could not load trip details</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={onClose}
+          >
+            <Text style={styles.cancelButtonText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -65,46 +197,33 @@ const ViewTrip = () => {
             <View style={styles.formRow}>
               <View style={[styles.formGroup, {flex: 1, marginRight: 8}]}>
                 <Text style={styles.label}>Start Date</Text>
-                <Text style={styles.valueText}>{trip.start_date}</Text>
+                <Text style={styles.valueText}>{trip.start_date || "Not specified"}</Text>
               </View>
 
               <View style={[styles.formGroup, {flex: 1}]}>
                 <Text style={styles.label}>End Date</Text>
-                <Text style={styles.valueText}>{trip.end_date}</Text>
+                <Text style={styles.valueText}>{trip.end_date || "Not specified"}</Text>
               </View>
             </View>
 
             <View style={styles.formRow}>
               <View style={[styles.formGroup, {flex: 1, marginRight: 8}]}>
                 <Text style={styles.label}>Start Location</Text>
-                <Text style={styles.valueText}>{trip.start_location}</Text>
+                <Text style={styles.valueText}>{trip.start_location || "Not specified"}</Text>
               </View>
 
               <View style={[styles.formGroup, {flex: 1}]}>
                 <Text style={styles.label}>End Location</Text>
-                <Text style={styles.valueText}>{trip.end_location}</Text>
+                <Text style={styles.valueText}>{trip.end_location || "Not specified"}</Text>
               </View>
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Stops</Text>
-              {trip.stops.length > 0 ? (
-                <View style={styles.listContainer}>
-                  {trip.stops.map((stop, index) => (
-                    <Text key={index} style={styles.listItem}>• {stop}</Text>
-                  ))}
-                </View>
-              ) : (
-                <Text style={styles.emptyText}>No stops planned</Text>
-              )}
-            </View>
-
-            <View style={styles.formGroup}>
               <Text style={styles.label}>Friends</Text>
-              {trip.friends.length > 0 ? (
+              {participants.length > 0 ? (
                 <View style={styles.listContainer}>
-                  {trip.friends.map((friend, index) => (
-                    <Text key={index} style={styles.listItem}>• {friend}</Text>
+                  {participants.map((user, index) => (
+                    <Text key={index} style={styles.listItem}>• {user.fullname || user.username}</Text>
                   ))}
                 </View>
               ) : (
@@ -114,8 +233,15 @@ const ViewTrip = () => {
 
             <View style={styles.formGroup}>
               <Text style={styles.label}>Supplies</Text>
-              {trip.supplies ? (
-                <Text style={styles.valueText}>{trip.supplies}</Text>
+              {supplies.length > 0 ? (
+                <View style={styles.listContainer}>
+                  {supplies.map((supply, index) => (
+                    <Text key={index} style={styles.listItem}>
+                      • {supply.name} {supply.quantity > 1 ? `(${supply.quantity})` : ''}
+                      {supply.notes ? ` - ${supply.notes}` : ''}
+                    </Text>
+                  ))}
+                </View>
               ) : (
                 <Text style={styles.emptyText}>No supplies listed</Text>
               )}
@@ -128,7 +254,12 @@ const ViewTrip = () => {
               >
                 <Text style={styles.cancelButtonText}>Back</Text>
               </TouchableOpacity>
-
+              <TouchableOpacity
+                style={[styles.button, styles.editButton]}
+                onPress={handleAdditionsTrip}
+              >
+                <Text style={styles.buttonText}>Add to Trip</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.editButton]}
                 onPress={handleEditTrip}
@@ -142,6 +273,5 @@ const ViewTrip = () => {
     </SafeAreaView>
   );
 };
-
 
 export default ViewTrip;

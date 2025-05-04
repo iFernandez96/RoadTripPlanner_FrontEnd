@@ -140,7 +140,7 @@ export default function RoadTripPlannerApp() {
         <View style={styles.tripOptionsContainer}>
           <TouchableOpacity
             style={[styles.optionButton, styles.viewDetailsOption]}
-            onPress={() => navigateToScreen('/')}
+            onPress={() => navigateToScreen('/screens/viewTrip',item.trip_id)}
           >
             <Text style={styles.optionButtonText}>View Trip Details</Text>
           </TouchableOpacity>
