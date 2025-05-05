@@ -93,25 +93,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   };
 
   // Check if user is already logged in on app start
-  // useEffect(() => {
-  //   const loadStoredAuth = async (): Promise<void> => {
-  //     try {
-  //       const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
-
-  //       if (storedUser) {
-  //         const userData: User = JSON.parse(storedUser);
-  //         setUser(userData);
-  //       }
-  //     } catch (error) {
-  //       console.error('Failed to load auth info:', error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   loadStoredAuth();
-  // }, []);
-
   useEffect(() => {
     const loadStoredAuth = async (): Promise<void> => {
     try {
@@ -127,6 +108,18 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
       if (token) {
         try {
           const decoded: DecodedToken = jwtDecode(token);
+
+          // Expiration check for token Web and Mobile
+          const now = Math.floor(Date.now()/1000);
+          if(decoded.exp && decoded.exp < now) {
+            console.warn('Token expired');
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('userToken');
+            } else {
+              await SecureStore.deleteItemAsync('userToken');
+            }
+            return;
+          }
           if (decoded?.email) {
             const userData: User = { username: decoded.email };
             setUser(userData);
