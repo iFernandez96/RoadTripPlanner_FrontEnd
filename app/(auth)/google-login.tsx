@@ -6,8 +6,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 
-// const BACKEND_AUTH_URL = `${Constants.expoConfig?.extra?.apiUrl}/auth/google`;
-const BACKEND_AUTH_URL = `${Constants.expoConfig?.extra?.apiUrl}/auth/google?platform=mobile`;
+const BACKEND_AUTH_URL = `${Constants.expoConfig?.extra?.apiUrl}/auth/google`;
 const REDIRECT_URI = 'myapp://redirect';
 
 

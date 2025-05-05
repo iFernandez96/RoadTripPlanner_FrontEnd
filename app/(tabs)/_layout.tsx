@@ -50,6 +50,7 @@ export default function TabLayout() {
             <IconSymbol size={28} name="person" color={color} />
           ),
         }}
+        
       />
       <Tabs.Screen
         name="google-profile"
@@ -60,6 +61,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
     </Tabs>
   );
 }

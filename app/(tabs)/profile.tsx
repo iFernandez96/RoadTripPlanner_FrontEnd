@@ -1,6 +1,5 @@
-import { Image, StyleSheet, Button} from 'react-native';
-import React from 'react';
-import {TextInput} from 'react-native';
+import { Image, StyleSheet, TextInput, Button} from 'react-native';
+import React, { useState } from 'react';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -9,20 +8,24 @@ import { router } from 'expo-router';
 
 
 export default function ProfileScreen() {
-    var username = 'testUser';
-    var password = 'password1'
-    const [newUser, onChangeTextU] = React.useState('enter new username');
-    const [newPass, onChangeTextP] = React.useState('enter new password');
-    const [oldPass, onChangeTextO] = React.useState('enter old password to confirm');
-    const changeUNP= () =>{
-        if(oldPass==password){
-            username = newUser;
-            password = newPass;
-        }
+    const [username, setUsername] = useState('');
+    const [newUsername, setNewUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [oldPassword, setOldPassword] = useState('');
+    const handleUsernameChange = () => {
+      if(oldPassword==password&&newUsername!=''){
+        setUsername(newUsername);
+      }
+    }
+    const handlePasswordChange = () => {
+      if(oldPassword==password&&newPassword!=''){
+        setPassword(newPassword);
+      }
     }
     return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#A1CEDC', dark: '#A1CEDC' }}
       headerImage={
         <Image
           source={require('@/assets/images/partial-react-logo.png')}
@@ -30,37 +33,36 @@ export default function ProfileScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome! {username} {newUser}</ThemedText>
+        <ThemedText type="title">Welcome! {username}</ThemedText>
       </ThemedView>
-      <SafeAreaProvider>
-        <SafeAreaView>
-            <TextInput
-            style={styles.input}
-            value={newUser}
-            onChangeText={onChangeTextU}
-            placeholder="enter new username"
-            />
-            <TextInput
-             style={styles.input}
-             value={newPass}
-             onChangeText={onChangeTextP}
-             placeholder="enter new password"
-            />
-            <TextInput
-             style={styles.input}
-             value={oldPass}
-             onChangeText={onChangeTextO}
-             placeholder="enter password to confirm"
-            />
-            <Button
-                title="press to confirm"
-                color='#FF0000'
-                onPress={() => (changeUNP)}
-            />
-            <Button title="Login with Google" onPress={() => router.push('/(auth)/google-login')} />
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="Enter old Password"
+          value={oldPassword}
+          onChangeText={text => setOldPassword(text)}
+          style={styles.input}
+        />
+      </ThemedView>
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="New Username"
+          value={newUsername}
+          onChangeText={text => setNewUsername(text)}
+          style={styles.input}
+        />
+        <Button title="Change Username" onPress={handleUsernameChange}/>
+      </ThemedView>
+      <ThemedView style={styles.regText}>
+        <TextInput
+          placeholder="New Password"
+          value={newPassword}
+          onChangeText={text => setNewPassword(text)}
+          style={styles.input}
+        />
+        <Button title="Change Password" onPress={handlePasswordChange}/>
 
-        </SafeAreaView>
-      </SafeAreaProvider>
+        <Button title="Login with Google" onPress={() => router.push('/(auth)/google-login')} />
+      </ThemedView>
     </ParallaxScrollView>
   );
 }
@@ -87,6 +89,12 @@ const styles = StyleSheet.create({
       height: 40,
       margin: 12,
       borderWidth: 1,
+      padding: 10,
+    },
+    regText: {
+      color: '#808080',
+      height: 40,
+      margin: 12,
       padding: 10,
     }
 });

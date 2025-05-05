@@ -36,22 +36,11 @@ function AuthLayout(): JSX.Element {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         {/* Auth screens outside the main Tab navigation */}
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="register" options={{ headerShown: false }} />
-
-        {/* Create Trip screen - moved out of tabs and properly defined */}
-        <Stack.Screen
-          name="createTrip"
-          options={{
-            headerShown: false,
-            headerTitle: "Add New Trip",
-            presentation: "modal"
-          }}
-          redirect={!isLoggedIn}
-        />
 
         {/* Tab navigation for authenticated users */}
         <Stack.Screen

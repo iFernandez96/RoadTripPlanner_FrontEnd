@@ -57,20 +57,6 @@ export default {
       apiUrl: env.API_URL,
       apiKey: env.API_KEY,
       environment: process.env.NODE_ENV || 'development',
-    },
-    // Deep Linking will need to be changed when we have our production domain going
-    linking: {
-      prefixes: ['myapp://', 'http://localhost:8081'],
-      config: {
-        screens: {
-          '(auth)': {
-            screens: {
-              'google-web-redirect': 'redirect',
-            },
-          },
-        },
-      },
     }
-    
   }
 };
