@@ -96,7 +96,6 @@ export default function RoadTripPlannerApp() {
 
       const fetchedTrips = await tripService.getMultipleTrips(tripIds);
       setTrips(fetchedTrips);
-      console.log(fetchedTrips);
     } catch (err) {
       console.error('Failed to fetch trip details:', err);
       setError('Failed to load trip details. Please try again later.');
@@ -211,7 +210,6 @@ export default function RoadTripPlannerApp() {
       const tripId = result.trip_id;
       console.log('Trip created successfully:', result);
 
-      // Reset form and close modal
       setNewTrip({
         title: '',
         description: '',
@@ -222,7 +220,6 @@ export default function RoadTripPlannerApp() {
       });
       setModalVisible(false);
 
-      // Refresh trip list
       fetchTripsIds();
 
     } catch (error: any) {

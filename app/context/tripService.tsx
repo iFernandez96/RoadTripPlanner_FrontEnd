@@ -48,7 +48,6 @@ class TripService {
         },
         body: JSON.stringify(tripData),
       });
-      console.log(response);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create trip');
@@ -76,7 +75,6 @@ class TripService {
           },
           body: JSON.stringify(stintData),
         });
-        console.log(response);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to create initial stint');
@@ -85,6 +83,32 @@ class TripService {
         return await response.json();
       } catch (error) {
         console.error('Error in createStint:', error);
+        throw error;
+      }
+    }
+async addVehicleToStint(stintId:number,vehicleData1: vehicleData1): Promise<Trip> {
+      try {
+  const token = authService.getToken();
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+        const response = await fetch(`${this.baseUrl}/stints/${stintId}/vehicles`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(vehicleData1),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add vehicle to stint');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error in addVehicleToStint:', error);
         throw error;
       }
     }
@@ -104,7 +128,6 @@ async createStop(stopData: stopData): Promise<Trip> {
           },
           body: JSON.stringify(stopData),
         });
-        console.log(response);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to create initial stint');
@@ -132,7 +155,6 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         },
         body: JSON.stringify(friendData),
       });
-      console.log(response);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create trip');
@@ -160,7 +182,6 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
           },
           body: JSON.stringify(supplyData),
         });
-        console.log(response);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to addSupplyToTrip ');
@@ -169,6 +190,33 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         return await response.json();
       } catch (error) {
         console.error('Error in addSupplyToTrip:', error);
+        throw error;
+      }
+    }
+async addVehicle(vehicleData:vehicleData): Promise<vehicle> {
+      try {
+  const token = authService.getToken();
+
+        if (!token) {
+          throw new Error('Authentication required. Please log in first.');
+        }
+
+        const response = await fetch(`${this.baseUrl}/vehicles`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(vehicleData),
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add vehicle ');
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('Error in addVehicle:', error);
         throw error;
       }
     }
@@ -266,10 +314,8 @@ async addFriendToTrip(tripId:tripId,friendData:friendData): Promise<Addition> {
         }
 
         const data = await response.json();
-        console.log(data)
 
-        const userInfo = data.map((item: User) => ({id: item.user_id, username: item.username}));
-        console.log(userInfo)
+        const userInfo = data.map((item: User) => ({id: item.user_id, username: item.username,fullname:item.fullname}));
         return userInfo;
       } catch (error) {
         console.error('Error in getUsersTripsId:', error);
@@ -300,7 +346,6 @@ async getLocationCoord(location: location): Promise<LocationCoord[]> {
 
         const data = await response.json();
         const LocationCoord = data;
-        console.log(LocationCoord);
         return LocationCoord;
       } catch (error) {
         console.error('Error in getLocationCoord:', error);
@@ -328,7 +373,6 @@ async getSuppliesById(TripId: number): Promise<suppliesData[]> {
 
         const data = await response.json();
         const suppliesData = data;
-        console.log(suppliesData);
         return suppliesData;
       } catch (error) {
         console.error('Error in getSuppliesById:', error);
@@ -356,7 +400,6 @@ async getParticipantsById(TripId: number): Promise<participantsData[]> {
 
         const data = await response.json();
         const participantsData = data;
-        console.log(participantsData);
         return participantsData;
       } catch (error) {
         console.error('Error in getParticipantsById:', error);
@@ -384,13 +427,64 @@ async getUserById(UserId: number): Promise<userData[]> {
 
         const data = await response.json();
         const userData = data;
-        console.log(userData);
         return userData;
       } catch (error) {
         console.error('Error in getUserById:', error);
         throw error;
       }
     }
+async getVehicles(): Promise<vehicleData[]> {
+    try {
+  const token = authService.getToken();
+
+      if (!token) {
+        throw new Error('Authentication required. Please log in first.');
+      }
+
+      const response = await fetch(`${this.baseUrl}/vehicles/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch vehicles details');
+      }
+      const vehicleData = await response.json();
+      return vehicleData;
+    } catch (error) {
+      console.error(`Error in getVehicles):`, error);
+      throw error;
+    }
+  }
+  async getTimelineById(TripId: number): Promise<timeline[]> {
+        try {
+    const token = authService.getToken();
+
+          if (!token) {
+            throw new Error('Authentication required. Please log in first.');
+          }
+
+          const response = await fetch(`${this.baseUrl}/trips/${TripId}/timeline`, {
+           headers: {
+                       'Authorization': `Bearer ${token}`
+                     }
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch timeline');
+          }
+
+          const data = await response.json();
+          const timeline = data;
+          return timeline;
+        } catch (error) {
+          console.error('Error in timeline:', error);
+          throw error;
+        }
+      }
 }
 
 const tripService = new TripService();
