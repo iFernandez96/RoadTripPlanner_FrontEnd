@@ -17,12 +17,15 @@ export default function GoogleWebRedirect() {
 
   useEffect(() => {
     const handleRedirect = async () => {
+      console.log('OAuth token from URL:', token);
       if (typeof token === 'string') {
         await storeToken(token);
         Alert.alert('Success', 'You are now logged in!');
-        router.replace('/(tabs)/profile');
+        console.log('Redirecting to /tabs/index');
+        router.replace('/(tabs)');
       } else {
         Alert.alert('Error', 'No token received');
+        console.log('No token received');
         router.replace('/');
       }
     };

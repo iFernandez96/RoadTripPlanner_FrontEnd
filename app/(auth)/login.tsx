@@ -15,12 +15,12 @@ export default function LoginScreen(): JSX.Element {
   const { login, user } = useAuth();
   
   // User null check to redirect authenticated users
-  useEffect(() => {
-    if (user) {
-      router.replace({ pathname: '/(tabs)/profile' });
+  // useEffect(() => {
+  //   if (user) {
+  //     router.replace({ pathname: '/(tabs)/profile' });
 
-    }
-  }, [user]);
+  //   }
+  // }, [user]);
   
 
   const handleLogin = async (): Promise<void> => {
