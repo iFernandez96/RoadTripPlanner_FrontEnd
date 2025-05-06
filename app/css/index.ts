@@ -310,6 +310,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   headerTop: {
+      alignItems:'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

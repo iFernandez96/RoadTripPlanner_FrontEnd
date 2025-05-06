@@ -52,7 +52,6 @@ export default function RoadTripPlannerApp() {
   const router = useRouter();
   const { logout } = useAuth();
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newTrip, setNewTrip] = useState<NewTrip>({
     title: '',
@@ -82,6 +81,8 @@ export default function RoadTripPlannerApp() {
 
       const fetchedTripIds = await tripService.getUsersTripsId();
       setTripIds(fetchedTripIds);
+      setIsLoading(false);
+
     } catch (err) {
       console.error('Failed to fetch trip IDs:', err);
       setError('Failed to load trips. Please try again later.');
@@ -96,6 +97,7 @@ export default function RoadTripPlannerApp() {
 
       const fetchedTrips = await tripService.getMultipleTrips(tripIds);
       setTrips(fetchedTrips);
+
     } catch (err) {
       console.error('Failed to fetch trip details:', err);
       setError('Failed to load trip details. Please try again later.');
@@ -297,7 +299,7 @@ export default function RoadTripPlannerApp() {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <View style={styles.header}>
-          <View style={styles.headerTop}>
+
             <Text style={styles.title}>Road Trip Planner</Text>
             <TouchableOpacity
               onPress={handleLogout}
@@ -305,7 +307,7 @@ export default function RoadTripPlannerApp() {
             >
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
-          </View>
+
           <Text style={styles.subtitle}>Plan, organize, and collaborate on road trips effortlessly.</Text>
         </View>
 

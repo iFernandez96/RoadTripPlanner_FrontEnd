@@ -38,17 +38,29 @@ interface TripFormData {
   supplies: Supply[];
 }
 
+interface TripTimeline {
+  trip_id: number;
+  stints: {
+    stint_id: number;
+    sequence_number: number;
+  }[];
+}
+
 const AddStops: React.FC = () => {
   const params = useLocalSearchParams();
-  // Convert string params to numbers
   const tripId = typeof params.tripId === 'string' ? parseInt(params.tripId, 10) : 0;
-  const stintId = typeof params.stintId === 'string' ? parseInt(params.stintId, 10) : 1;;
+  const [stintId, setStintId] = useState<number>(
+    typeof params.stintId === 'string' ? parseInt(params.stintId, 10) : 1
+  );
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
   const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTripDetails, setSelectedTripDetails] = useState<TripTimeline | null>(null);
+  const [stintFetchAttempted, setStintFetchAttempted] = useState<boolean>(false);
 
   const [newTrip, setNewTrip] = useState<TripFormData>({
     title: '',
@@ -79,16 +91,61 @@ const AddStops: React.FC = () => {
     notes: ''
   });
 
-  useEffect(() => {
+  const fetchTripTimeline = async (tripId: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
+      const fetchedTripTimeline = await tripService.getTimelineById(tripId);
+      setSelectedTripDetails(fetchedTripTimeline);
+       console.log(fetchedTripTimeline)
+      if (fetchedTripTimeline && fetchedTripTimeline.stints && fetchedTripTimeline.stints.length > 0) {
+        const sortedStints = [...fetchedTripTimeline.stints].sort(
+          (a, b) => b.sequence_number - a.sequence_number
+        );
+        const latestStintId = sortedStints[0].stintId;
+        setStintId(latestStintId);
+        console.log('Latest stint ID found:', latestStintId);
+        return true;
+      } else {
+        console.log('No stints available in the timeline');
+        return false;
+      }
+    } catch (err) {
+      console.error('Failed to fetch TripTimeline details:', err);
+      setError('Failed to load TripTimeline details. Please try again later.');
+      return false;
+    } finally {
+      setIsLoading(false);
+      setStintFetchAttempted(true);
+    }
+  };
+
+  useEffect(() => {
     console.log("Received params - tripId:", tripId, "stintId:", stintId);
 
-    // Validate tripId and stintId
-    if (isNaN(tripId) || isNaN(stintId) || tripId <= 0 || stintId <= 0) {
-      Alert.alert('Invalid Parameters', 'Trip ID or Stint ID is invalid');
+    if (isNaN(tripId) || tripId <= 0) {
+      Alert.alert('Invalid Parameters', 'Trip ID is invalid');
+      return;
     }
-  }, [tripId, stintId]);
 
+    const checkStint = async () => {
+      if (typeof params.stintId !== 'string') {
+        console.log("No stint ID provided, fetching latest stint...");
+        const hasStints = await fetchTripTimeline(tripId);
+
+        if (!hasStints) {
+          Alert.alert(
+            'No Stints Available',
+            'No stints found for this trip. Please create a stint first.',
+            [{ text: 'OK', onPress: () => router.back() }]
+          );
+        }
+      }
+    };
+
+    checkStint();
+  }, [tripId, params.stintId]);
 
   const handleAddTrip = async () => {
     if (isSubmitting) return;
@@ -96,8 +153,15 @@ const AddStops: React.FC = () => {
       setIsLoading(true);
       setIsSubmitting(true);
 
-      if (isNaN(tripId) || isNaN(stintId) || tripId <= 0 || stintId <= 0) {
-        Alert.alert('Error', 'Trip ID or Stint ID is invalid');
+      if (isNaN(tripId) || tripId <= 0) {
+        Alert.alert('Error', 'Trip ID is invalid');
+        setIsLoading(false);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (isNaN(stintId) || stintId <= 0) {
+        Alert.alert('Error', 'Stint ID is invalid');
         setIsLoading(false);
         setIsSubmitting(false);
         return;
@@ -141,13 +205,13 @@ const AddStops: React.FC = () => {
     } finally {
       setIsLoading(false);
       setIsSubmitting(false);
-        router.push({
-                       pathname: '/screens/additionsTrips',
-                       params: {
-                         tripId: tripId
-                       }
-                     });
-     }
+      router.push({
+        pathname: '/screens/additionsTrips',
+        params: {
+          tripId: tripId
+        }
+      });
+    }
   };
 
   const handleAddStopToTrip = async (
@@ -246,7 +310,6 @@ const AddStops: React.FC = () => {
     }
   };
 
-
   const handleAddStop = () => {
     if (currentStop.trim()) {
       setNewTrip({
@@ -298,158 +361,181 @@ const AddStops: React.FC = () => {
   const onClose = () => {
     router.back();
   };
+
   const onSkip = () => {
-      router.push('/');
-    };
+    router.push('/');
+  };
+
+  if (stintFetchAttempted && stintId <= 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.formContainer}>
+          <Text style={styles.modalTitle}>No Stints Available</Text>
+          <Text style={styles.label}>Please go back and create a stint first.</Text>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={onClose}
+          >
+            <Text style={styles.cancelButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading trip data...</Text>
+        </View>
+      ) : (
         <ScrollView contentContainerStyle={styles.contentContainer}>
           <View style={styles.formContainer}>
             <Text style={styles.modalTitle}>Add Trip Stops</Text>
+            <Text style={styles.subLabel}>Trip ID: {tripId}, Stint ID: {stintId}</Text>
 
-          <View style={styles.form}>
+            <View style={styles.form}>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>End Location</Text>
+                <TextInput
+                  style={styles.input}
+                  value={newTrip.end_location}
+                  onChangeText={(text) => setNewTrip({...newTrip, end_location: text})}
+                  placeholder="Where your trip ends"
+                />
+              </View>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>End Location</Text>
-              <TextInput
-                style={styles.input}
-                value={newTrip.end_location}
-                onChangeText={(text) => setNewTrip({...newTrip, end_location: text})}
-                placeholder="Where your trip ends"
-              />
-            </View>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Add Stops:</Text>
 
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Add Stops:</Text>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={openStopsModal}
+                >
+                  <Text style={styles.dropdownButtonText}>
+                    Add detailed stop
+                  </Text>
+                </TouchableOpacity>
 
-
-              <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={openStopsModal}
-              >
-                <Text style={styles.dropdownButtonText}>
-                  Add detailed stop
-                </Text>
-              </TouchableOpacity>
-
-              <Modal
-                visible={showStopsModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setShowStopsModal(false)}
-              >
-                <View style={styles.modalOverlay}>
-                  <View style={styles.dropdownContainer}>
-                    <View style={styles.dropdownHeader}>
-                      <Text style={styles.dropdownTitle}>Add Stop</Text>
-                      <TouchableOpacity onPress={() => setShowStopsModal(false)}>
-                        <Text style={styles.closeButton}>Cancel</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Name *</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={newStop.name}
-                        onChangeText={(text) => setNewStop({...newStop, name: text})}
-                        placeholder="Stop name"
-                      />
-                    </View>
-
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Type</Text>
-                      <View style={styles.categoryContainer}>
-                        {['pitstop', 'overnight', 'gas', 'food', 'attraction', 'other'].map((type) => (
-                          <TouchableOpacity
-                            key={type}
-                            style={[
-                              styles.categoryButton,
-                              newStop.type === type && styles.categoryButtonSelected
-                            ]}
-                            onPress={() => setNewStop({...newStop, type: type as StopType})}
-                          >
-                            <Text
-                              style={[
-                                styles.categoryButtonText,
-                                newStop.type === type && styles.categoryButtonTextSelected
-                              ]}
-                            >
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
+                <Modal
+                  visible={showStopsModal}
+                  transparent={true}
+                  animationType="slide"
+                  onRequestClose={() => setShowStopsModal(false)}
+                >
+                  <View style={styles.modalOverlay}>
+                    <View style={styles.dropdownContainer}>
+                      <View style={styles.dropdownHeader}>
+                        <Text style={styles.dropdownTitle}>Add Stop</Text>
+                        <TouchableOpacity onPress={() => setShowStopsModal(false)}>
+                          <Text style={styles.closeButton}>Cancel</Text>
+                        </TouchableOpacity>
                       </View>
-                    </View>
 
-                    <View style={styles.formGroup}>
-                      <Text style={styles.label}>Notes</Text>
-                      <TextInput
-                        style={[styles.input, {height: 60}]}
-                        value={newStop.notes}
-                        onChangeText={(text) => setNewStop({...newStop, notes: text})}
-                        placeholder="Additional notes"
-                        multiline
-                      />
-                    </View>
+                      <View style={styles.formGroup}>
+                        <Text style={styles.label}>Name *</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={newStop.name}
+                          onChangeText={(text) => setNewStop({...newStop, name: text})}
+                          placeholder="Stop name"
+                        />
+                      </View>
 
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={handleAddStopFromModal}
-                    >
-                      <Text style={styles.cancelButtonText}>Add Stop</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
+                      <View style={styles.formGroup}>
+                        <Text style={styles.label}>Type</Text>
+                        <View style={styles.categoryContainer}>
+                          {['pitstop', 'overnight', 'gas', 'food', 'attraction', 'other'].map((type) => (
+                            <TouchableOpacity
+                              key={type}
+                              style={[
+                                styles.categoryButton,
+                                newStop.type === type && styles.categoryButtonSelected
+                              ]}
+                              onPress={() => setNewStop({...newStop, type: type as StopType})}
+                            >
+                              <Text
+                                style={[
+                                  styles.categoryButtonText,
+                                  newStop.type === type && styles.categoryButtonTextSelected
+                                ]}
+                              >
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
 
-              {newTrip.stops.length > 0 && (
-                <View style={styles.listContainer}>
-                  <Text style={styles.subLabel}>Added Stops:</Text>
-                  {newTrip.stops.map((stop, index) => (
-                    <View key={index} style={styles.friendItem}>
-                      <Text style={styles.listItem}>• {stop}</Text>
-                      <TouchableOpacity onPress={() => handleRemoveStop(index)}>
-                        <Text style={styles.removeButton}>Remove</Text>
+                      <View style={styles.formGroup}>
+                        <Text style={styles.label}>Notes</Text>
+                        <TextInput
+                          style={[styles.input, {height: 60}]}
+                          value={newStop.notes}
+                          onChangeText={(text) => setNewStop({...newStop, notes: text})}
+                          placeholder="Additional notes"
+                          multiline
+                        />
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.button}
+                        onPress={handleAddStopFromModal}
+                      >
+                        <Text style={styles.cancelButtonText}>Add Stop</Text>
                       </TouchableOpacity>
                     </View>
-                  ))}
-                </View>
-              )}
-            </View>
+                  </View>
+                </Modal>
 
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={onClose}
-                disabled={isLoading}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-             <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={onSkip}
-                disabled={isLoading}
-              >
-                <Text style={styles.cancelButtonText}>Skip For Now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.saveButton, isLoading && styles.disabledButton]}
-                onPress={handleAddTrip}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.buttonText}>Add Trip</Text>
+                {newTrip.stops.length > 0 && (
+                  <View style={styles.listContainer}>
+                    <Text style={styles.subLabel}>Added Stops:</Text>
+                    {newTrip.stops.map((stop, index) => (
+                      <View key={index} style={styles.friendItem}>
+                        <Text style={styles.listItem}>• {stop}</Text>
+                        <TouchableOpacity onPress={() => handleRemoveStop(index)}>
+                          <Text style={styles.removeButton}>Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
                 )}
-              </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={onClose}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={onSkip}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.cancelButtonText}>Skip For Now</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.saveButton, isLoading && styles.disabledButton]}
+                  onPress={handleAddTrip}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.buttonText}>Add Trip</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
           </View>
         </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
