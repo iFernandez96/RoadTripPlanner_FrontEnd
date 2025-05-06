@@ -250,7 +250,22 @@ const styles = StyleSheet.create({
   roleOptionText: {
     fontWeight: '600',
     color: '#64748b',
-  },
+  },pickerContainer: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        marginBottom: 16,
+        backgroundColor: '#fff',
+      },
+      picker: {
+        height: 50,
+        width: '100%',
+      },
+      vehicleOwner: {
+        fontSize: 14,
+        color: '#555',
+        marginTop: 2,
+      }
 });
 
 export default styles;
