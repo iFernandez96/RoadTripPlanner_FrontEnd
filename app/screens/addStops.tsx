@@ -16,6 +16,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import tripService from '../context/tripService';
 import authService from '../context/authService';
+import SearchLocationInput from './SearchLocationInput';
 
 type StopType = 'pitstop' | 'overnight'| 'gas'| 'food'| 'attraction'| 'other';
 
@@ -434,7 +435,7 @@ const AddStops: React.FC = () => {
                         </TouchableOpacity>
                       </View>
 
-                      <View style={styles.formGroup}>
+                      {/* <View style={styles.formGroup}>
                         <Text style={styles.label}>Name *</Text>
                         <TextInput
                           style={styles.input}
@@ -442,7 +443,27 @@ const AddStops: React.FC = () => {
                           onChangeText={(text) => setNewStop({...newStop, name: text})}
                           placeholder="Stop name"
                         />
+                      </View> */}
+                      {/* Adding stop component */}
+                      <View style={styles.formGroup}>
+                        <Text style={styles.label}>Search for Location *</Text>
+                        <SearchLocationInput
+                          mode="geocode"
+                          onSelect={(location) => {
+                            setNewStop({
+                              ...newStop,
+                              name: location.address || location.name || '',
+                              notes: `${location.city || ''} ${location.state || ''}`,
+                              latitude: location.latitude,
+                              longitude: location.longitude,
+                              locationId: location.location_id,
+                            });
+                            //setShowStopsModal(false); // Optional: auto-close modal after selection
+                          }}
+                        />
                       </View>
+
+
 
                       <View style={styles.formGroup}>
                         <Text style={styles.label}>Type</Text>
