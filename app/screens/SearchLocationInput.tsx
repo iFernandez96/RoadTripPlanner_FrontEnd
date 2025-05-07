@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
+  TextInput,
   FlatList,
   Text,
   TouchableOpacity,
@@ -9,73 +10,64 @@ import {
 } from 'react-native';
 import tripService from '../context/tripService';
 
-interface LocationResult {
-  location: {
-    location_id: number;
-    name: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-    city?: string;
-    state?: string;
-    [key: string]: any;
-  };
-  distance: number;
-}
+const SearchLocationInput = ({ onSelect }: { onSelect: (location: any) => void }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-interface Props {
-  locationId: number;
-  radius?: number;
-  limit?: number;
-  onSelect: (location: LocationResult['location']) => void;
-}
+  const handleSearch = async () => {
+    if (!query.trim()) return;
 
-const SearchLocationInput: React.FC<Props> = ({
-  locationId,
-  radius = 1000,
-  limit = 10,
-  onSelect,
-}) => {
-  const [results, setResults] = useState<LocationResult[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    console.log('Search query submitted:', query);
 
-  const fetchSuggestions = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const data = await tripService.getSuggestedLocations({
-        locationId,
-        radius,
-        limit,
+      const coordRes = await tripService.getLocationCoord({ address: query });
+      console.log('Response from getLocationCoord:', coordRes);
+
+      const location = coordRes?.location;
+      if (!location) { 
+        console.warn('No location found for query');
+        return;
+      }
+
+      const suggestions = await tripService.getSuggestedLocations({
+        locationId: location.location_id,
+        radius: 1000,
+        limit: 10
       });
-      setResults(data);
-    } catch (err) {
-      console.error('Failed to fetch suggestions:', err);
-      setError('Could not load suggested stops.');
+
+      console.log('Suggestions received:', suggestions);
+      setResults(suggestions);
+    } catch (error) {
+      console.error('Suggestion search error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (locationId) {
-      fetchSuggestions();
-    }
-  }, [locationId]);
-
   return (
     <View>
-      {loading && <ActivityIndicator size="small" />}
-      {error && <Text style={styles.error}>{error}</Text>}
-
+      <TextInput
+        style={styles.input}
+        placeholder="Search for nearby suggestions..."
+        value={query}
+        onChangeText={setQuery}
+        onSubmitEditing={handleSearch}
+        returnKeyType="search"
+      />
+      {loading && <ActivityIndicator />}
       <FlatList
         data={results}
-        keyExtractor={(item, index) => `${item.location.location_id}-${index}`}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.resultItem}
-            onPress={() => onSelect(item.location)}
+            onPress={async () => {
+              const resolved = await tripService.getLocationCoord({
+                address: item.location.address
+              });
+              onSelect(resolved?.location);
+            }}
           >
             <Text>{item.location.name}</Text>
             <Text style={styles.subText}>{item.location.address}</Text>
@@ -87,19 +79,16 @@ const SearchLocationInput: React.FC<Props> = ({
 };
 
 const styles = StyleSheet.create({
-  error: {
-    color: 'red',
-    marginBottom: 10,
-  },
-  resultItem: {
+  input: {
+    borderWidth: 1,
     padding: 10,
-    backgroundColor: '#eee',
-    marginBottom: 5,
-    borderRadius: 4,
+    borderRadius: 6,
+    borderColor: '#ccc',
+    marginBottom: 10,
   },
   subText: {
     fontSize: 12,
-    color: '#666',
+    color: '#555',
   },
 });
 
