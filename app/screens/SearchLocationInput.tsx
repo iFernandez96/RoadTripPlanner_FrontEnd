@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
-  TextInput,
   FlatList,
   Text,
   TouchableOpacity,
@@ -10,91 +9,76 @@ import {
 } from 'react-native';
 import tripService from '../context/tripService';
 
-type Mode = 'geocode' | 'discover' | 'suggested';
-
 interface LocationResult {
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  [key: string]: any;
+  location: {
+    location_id: number;
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    city?: string;
+    state?: string;
+    [key: string]: any;
+  };
+  distance: number;
 }
 
 interface Props {
-  mode: Mode;
-  locationId?: number;
-  onSelect: (location: LocationResult) => void;
+  locationId: number;
+  radius?: number;
+  limit?: number;
+  onSelect: (location: LocationResult['location']) => void;
 }
 
-const SearchLocationInput: React.FC<Props> = ({ mode, locationId, onSelect }) => {
-  const [query, setQuery] = useState('');
+const SearchLocationInput: React.FC<Props> = ({
+  locationId,
+  radius = 1000,
+  limit = 10,
+  onSelect,
+}) => {
   const [results, setResults] = useState<LocationResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-    setLoading(true);
-    setError(null);
-    console.log('Query submitted:', query);
-
+  const fetchSuggestions = async () => {
     try {
-      let data;
-
-      if (mode === 'geocode') {
-        const res = await tripService.getLocationCoord({ address: query });
-
-        console.log('Raw response:', res);
-
-        data = res?.location ? [res.location] : [];
-
-        console.log('Parsed search results:', data);
-      } else if (mode === 'discover') { // Possible feature
-        // Add implementation: tripService.discoverNearby(query, locationId)
-      } else if (mode === 'suggested') { // Another possible feature
-        // Add implementation: tripService.getSuggestedLocations(locationId, query)
-        if (!locationId) {
-            throw new Error('locationId is required for suggested search');
-          }
-          data = await tripService.getSuggestedLocations({
-            locationId,
-            radius: 1000,
-            limit: 10
-          });
-      }
-
+      setLoading(true);
+      setError(null);
+      const data = await tripService.getSuggestedLocations({
+        locationId,
+        radius,
+        limit,
+      });
       setResults(data);
-    } catch (err: any) {
-      console.error('Search error:', err);
-      setError('Search failed. Please try again.');
+    } catch (err) {
+      console.error('Failed to fetch suggestions:', err);
+      setError('Could not load suggested stops.');
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (locationId) {
+      fetchSuggestions();
+    }
+  }, [locationId]);
+
   return (
     <View>
-      <TextInput
-        style={styles.input}
-        placeholder="Search for a location..."
-        value={query}
-        onChangeText={setQuery}
-        onSubmitEditing={handleSearch}
-        returnKeyType="search"
-      />
       {loading && <ActivityIndicator size="small" />}
       {error && <Text style={styles.error}>{error}</Text>}
 
       <FlatList
         data={results}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => `${item.location.location_id}-${index}`}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.resultItem}
-            onPress={() => onSelect(item)}
+            onPress={() => onSelect(item.location)}
           >
-            <Text>{item.name || item.address}</Text>
-            <Text style={styles.subText}>{item.address}</Text>
+            <Text>{item.location.name}</Text>
+            <Text style={styles.subText}>{item.location.address}</Text>
           </TouchableOpacity>
         )}
       />
@@ -103,13 +87,6 @@ const SearchLocationInput: React.FC<Props> = ({ mode, locationId, onSelect }) =>
 };
 
 const styles = StyleSheet.create({
-  input: {
-    borderWidth: 1,
-    padding: 8,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    marginBottom: 10,
-  },
   error: {
     color: 'red',
     marginBottom: 10,

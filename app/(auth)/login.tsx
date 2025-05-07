@@ -14,15 +14,7 @@ export default function LoginScreen(): JSX.Element {
   const router = useRouter();
   const { login, user } = useAuth();
   
-  // User null check to redirect authenticated users
-  // useEffect(() => {
-  //   if (user) {
-  //     router.replace({ pathname: '/(tabs)/profile' });
-
-  //   }
-  // }, [user]);
   
-
   const handleLogin = async (): Promise<void> => {
     if (!username || !password) {
       Alert.alert('Error', 'Please enter both username and password');
