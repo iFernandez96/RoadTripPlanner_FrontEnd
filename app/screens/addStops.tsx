@@ -99,11 +99,12 @@ const AddStops: React.FC = () => {
       const fetchedTripTimeline = await tripService.getTimelineById(tripId);
       setSelectedTripDetails(fetchedTripTimeline);
        console.log(fetchedTripTimeline)
+       console.log(fetchedTripTimeline.stints.length)
       if (fetchedTripTimeline && fetchedTripTimeline.stints && fetchedTripTimeline.stints.length > 0) {
         const sortedStints = [...fetchedTripTimeline.stints].sort(
           (a, b) => b.sequence_number - a.sequence_number
         );
-        const latestStintId = sortedStints[0].stintId;
+        const latestStintId = sortedStints[fetchedTripTimeline.stints.length-1].stintId;
         setStintId(latestStintId);
         console.log('Latest stint ID found:', latestStintId);
         return true;
