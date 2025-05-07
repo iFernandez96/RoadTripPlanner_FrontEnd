@@ -485,6 +485,45 @@ async getVehicles(): Promise<vehicleData[]> {
           throw error;
         }
       }
+      async getSuggestedLocations(params: {
+        lat?: number;
+        lng?: number;
+        locationId?: number;
+        radius?: number;
+        limit?: number;
+      }): Promise<any[]> {
+        try {
+          const token = authService.getToken();
+      
+          if (!token) {
+            throw new Error('Authentication required. Please log in first.');
+          }
+      
+          const queryParams = new URLSearchParams();
+          if (params.lat !== undefined) queryParams.append('lat', params.lat.toString());
+          if (params.lng !== undefined) queryParams.append('lng', params.lng.toString());
+          if (params.locationId !== undefined) queryParams.append('locationId', params.locationId.toString());
+          if (params.radius !== undefined) queryParams.append('radius', params.radius.toString());
+          if (params.limit !== undefined) queryParams.append('limit', params.limit.toString());
+      
+          const response = await fetch(`${this.baseUrl}/locations/suggested?${queryParams.toString()}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+      
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch suggested locations');
+          }
+      
+          return await response.json();
+        } catch (error) {
+          console.error('Error in getSuggestedLocations:', error);
+          throw error;
+        }
+      }
+      
 }
 
 const tripService = new TripService();
