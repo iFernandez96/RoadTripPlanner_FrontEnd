@@ -17,6 +17,7 @@ import {
   Picker,
   Alert
 } from 'react-native';
+import { useRouter } from 'expo-router';
 
 export default function RoadTripPlannerApp() {
   const [vehicles, setVehicles] = useState([]);
@@ -32,6 +33,7 @@ export default function RoadTripPlannerApp() {
   const [selectedTripId, setSelectedTripId] = useState('');
   const [selectedStintId, setSelectedStintId] = useState('');
   const [collaboratorModalVisible, setCollaboratorModalVisible] = useState(false);
+  const router = useRouter();
   const [newVehicle, setNewVehicle] = useState({
     name: '',
     year: '',
@@ -218,7 +220,7 @@ export default function RoadTripPlannerApp() {
       console.error('Error assigning vehicle to stint:', error);
       Alert.alert("Error", "Failed to assign vehicle to stint. Try again later.");
     }finally{
-        router.push('Vehicles')}
+        router.push('/(tabs)/Vehicles')}
   };
 
   const handleVehiclePress = (vehicle) => {
