@@ -265,7 +265,15 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#555',
         marginTop: 2,
-      }
+      }, logoutButton: {
+            padding: 8,
+            borderRadius: 5,
+            backgroundColor: '#f0f0f0',
+          },
+          logoutText: {
+            color: '#333',
+            fontWeight: '500',
+          },
 });
 
 export default styles;

@@ -395,7 +395,7 @@ const AddStops: React.FC = () => {
     router.push('/');
   };
 
-  if (stintFetchAttempted && stintId <= 0) {
+  if ( stintId <= 1) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.formContainer}>

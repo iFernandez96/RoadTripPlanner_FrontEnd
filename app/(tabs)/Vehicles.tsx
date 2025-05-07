@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../css/vehicles';
 import tripService from '../context/tripService';
+import { useAuth } from '../context/AuthContext';
+
 
 import {
   View,
@@ -34,6 +36,8 @@ export default function RoadTripPlannerApp() {
   const [selectedStintId, setSelectedStintId] = useState('');
   const [collaboratorModalVisible, setCollaboratorModalVisible] = useState(false);
   const router = useRouter();
+  const { logout } = useAuth();
+
   const [newVehicle, setNewVehicle] = useState({
     name: '',
     year: '',
@@ -57,7 +61,9 @@ export default function RoadTripPlannerApp() {
       fetchTrips();
     }
   }, [tripIds]);
-
+ const handleLogout = (): void => {
+    logout();
+  };
   useEffect(() => {
     if (selectedTripId) {
       fetchTripTimeline(selectedTripId);
@@ -288,6 +294,12 @@ export default function RoadTripPlannerApp() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Road Trip Planner</Text>
+        <TouchableOpacity
+                      onPress={handleLogout}
+                      style={styles.logoutButton}
+                    >
+                      <Text style={styles.logoutText}>Logout</Text>
+                    </TouchableOpacity>
         <Text style={styles.subtitle}>Manage Vehicles</Text>
       </View>
 
@@ -347,7 +359,7 @@ export default function RoadTripPlannerApp() {
                       style={styles.input}
                       value={newVehicle.year}
                       onChangeText={(text) => setNewVehicle({...newVehicle, year: text})}
-                      placeholder="2023"
+                      placeholder="EX: 2023"
                       keyboardType="numeric"
                     />
                   </View>
@@ -358,7 +370,7 @@ export default function RoadTripPlannerApp() {
                       style={styles.input}
                       value={newVehicle.fuel_capacity}
                       onChangeText={(text) => setNewVehicle({...newVehicle, fuel_capacity: text})}
-                      placeholder="15.0 gal"
+                      placeholder="EX: 15"
                       keyboardType="numeric"
                     />
                   </View>
@@ -371,7 +383,7 @@ export default function RoadTripPlannerApp() {
                       style={styles.input}
                       value={newVehicle.mpg}
                       onChangeText={(text) => setNewVehicle({...newVehicle, mpg: text})}
-                      placeholder="25"
+                      placeholder="EX: 25"
                       keyboardType="numeric"
                     />
                   </View>

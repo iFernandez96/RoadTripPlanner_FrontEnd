@@ -225,7 +225,7 @@ const CreateStint: React.FC = () => {
           name: newStint.name || "New Stint",
           sequence_number: lastSequenceNumber + 1,
           trip_id: tripId,
-          notes: newStint.notes || "Additional stint on our journey"
+          notes: newStint.notes || "Additional stint: "+newStint.name
         };
 
         console.log('Adding new sequential stint:', JSON.stringify(stintData, null, 2));
@@ -316,7 +316,7 @@ const CreateStint: React.FC = () => {
           state: state,
           postal_code: postalCode,
           stopType: "departure",
-          notes: "Our journey begins here"
+          notes: "Our journey begins here: " + initialStopName
         },
         notes: notes,
         start_time: formattedDate
@@ -360,19 +360,11 @@ const CreateStint: React.FC = () => {
             {hasExistingStints ? 'Add New Stint To Trip' : 'Add First Stint To Trip'}
           </Text>
 
-          {usedBasicTripData && (
-            <View style={styles.warningContainer}>
-              <Text style={styles.warningText}>
-                Using basic trip information. Timeline data could not be loaded.
-              </Text>
-            </View>
-          )}
-
           {tripDisplayData && (
             <View style={styles.tripInfoContainer}>
               <Text style={styles.tripTitle}>{tripDisplayData.title}</Text>
               <Text style={styles.tripDates}>
-                {formatDateForDisplay(tripDisplayData.start_date)} - {formatDateForDisplay(tripDisplayData.end_date || '')}
+                {formatDateForDisplay(tripDisplayData.start_date)}
               </Text>
 
               {hasExistingStints && (
@@ -383,7 +375,6 @@ const CreateStint: React.FC = () => {
             </View>
           )}
 
-          {error && <Text style={styles.errorText}>{error}</Text>}
 
           <View style={styles.form}>
             {hasExistingStints ? (

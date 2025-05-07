@@ -151,204 +151,265 @@ export const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.7
   },
-   dropdownButton: {
-      backgroundColor: '#f0f0f0',
-      padding: 12,
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#ddd',
-      marginBottom: 8,
-    },
-    dropdownButtonText: {
-      fontSize: 16,
-      color: '#333',
-    },
+  dropdownButton: {
+    backgroundColor: '#f0f0f0',
+    padding: 12,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 8,
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
 
-    // Modal styles
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-    },
-    dropdownContainer: {
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 16,
-      width: '90%',
-      maxHeight: '80%',
-    },
-    dropdownHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-      paddingBottom: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    },
-    dropdownTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    closeButton: {
-      color: '#007bff',
-      fontSize: 16,
-    },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  dropdownContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 16,
+    width: '90%',
+    maxHeight: '80%',
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dropdownTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    color: '#007bff',
+    fontSize: 16,
+  },
 
-    // Search input
-    searchInput: {
-      borderWidth: 1,
-      borderColor: '#ddd',
-      borderRadius: 5,
-      padding: 10,
-      marginBottom: 12,
-    },
+  // Search input
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 12,
+  },
 
-    // User list items
-    userItem: {
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    },
-    userName: {
-      fontSize: 16,
-      fontWeight: '500',
-    },
-    userId: {
-      fontSize: 12,
-      color: '#666',
-      marginTop: 4,
-    },
+  // User list items
+  userItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  userId: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
 
-    // Empty and loading states
-    emptyList: {
-      padding: 20,
-      textAlign: 'center',
-      color: '#666',
-    },
-    centerContent: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 20,
-    },
-    loadingText: {
-      marginTop: 10,
-      color: '#666',
-    },
+  // Empty and loading states
+  emptyList: {
+    padding: 20,
+    textAlign: 'center',
+    color: '#666',
+  },
+  centerContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+  },
 
-    friendItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 4,
-    },
-    removeButton: {
-      color: '#ff3b30',
-      fontSize: 14,
-    },friendInfo: {
-          flexDirection: 'row',
-          alignItems: 'center',
-          flex: 1,
-        },
-        roleTag: {
-          backgroundColor: '#e0e0e0',
-          paddingHorizontal: 8,
-          paddingVertical: 2,
-          borderRadius: 12,
-          marginLeft: 8,
-          fontSize: 12,
-          color: '#666',
-        },
-        roleModalContainer: {
-          backgroundColor: 'white',
-          borderRadius: 12,
-          padding: 16,
-          width: '80%',
-          maxHeight: '60%',
-        },
-        roleButtonsContainer: {
-          marginTop: 16,
-        },
-        roleButton: {
-          backgroundColor: '#f0f0f0',
-          padding: 12,
-          borderRadius: 8,
-          marginBottom: 8,
-          alignItems: 'center',
-        },
-        roleButtonText: {
-          fontSize: 16,
-          color: '#333',
-        },categoryContainer: {
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              marginTop: 8,
-              marginBottom: 16,
-            },
-            categoryButton: {
-              paddingHorizontal: 12,
-              paddingVertical: 6,
-              borderRadius: 16,
-              backgroundColor: '#f0f0f0',
-              marginRight: 8,
-              marginBottom: 8,
-              borderWidth: 1,
-              borderColor: '#e0e0e0',
-            },
-            categoryButtonSelected: {
-              backgroundColor: '#3498db',
-              borderColor: '#2980b9',
-            },
-            categoryButtonText: {
-              fontSize: 14,
-              color: '#333',
-            },
-            categoryButtonTextSelected: {
-              color: '#fff',
-              fontWeight: '500',
-            },
+  friendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  removeButton: {
+    color: '#ff3b30',
+    fontSize: 14,
+  },
+  friendInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  roleTag: {
+    backgroundColor: '#e0e0e0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+    fontSize: 12,
+    color: '#666',
+  },
+  roleModalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 16,
+    width: '80%',
+    maxHeight: '60%',
+  },
+  roleButtonsContainer: {
+    marginTop: 16,
+  },
+  roleButton: {
+    backgroundColor: '#f0f0f0',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  roleButtonText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  categoryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f0f0f0',
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  categoryButtonSelected: {
+    backgroundColor: '#3498db',
+    borderColor: '#2980b9',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categoryButtonTextSelected: {
+    color: '#fff',
+    fontWeight: '500',
+  },
 
-            // Supply item display styles
-            supplyItem: {
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              paddingVertical: 6,
-              borderBottomWidth: 1,
-              borderBottomColor: '#f0f0f0',
-            },
-            supplyInfo: {
-              flexDirection: 'row',
-              alignItems: 'center',
-              flex: 1,
-            },
-            categoryTag: {
-              fontSize: 12,
-              backgroundColor: '#e1f5fe',
-              color: '#0288d1',
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              borderRadius: 12,
-              marginLeft: 8,
-              overflow: 'hidden',
-            },
+  // Supply item display styles
+  supplyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  supplyInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  categoryTag: {
+    fontSize: 12,
+    backgroundColor: '#e1f5fe',
+    color: '#0288d1',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+    overflow: 'hidden',
+  },
 
-            // Additional styles for better UI
-            roleTag: {
-              fontSize: 12,
-              backgroundColor: '#e8f5e9',
-              color: '#2e7d32',
-              paddingHorizontal: 8,
-              paddingVertical: 2,
-              borderRadius: 12,
-              marginLeft: 8,
-              overflow: 'hidden',
-            },
-            friendInfo: {
-              flexDirection: 'row',
-              alignItems: 'center',
-              flex: 1,
-            },
+  // Additional styles for better UI
+  roleTag: {
+    fontSize: 12,
+    backgroundColor: '#e8f5e9',
+    color: '#2e7d32',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+    overflow: 'hidden',
+  },
+
+  // Missing styles for CreateStint component
+  tripInfoContainer: {
+    backgroundColor: '#f5f9ff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4a90e2',
+  },
+  tripTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  tripDates: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  existingStintsInfo: {
+    fontSize: 14,
+    color: '#4a90e2',
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  warningContainer: {
+    backgroundColor: '#fff3cd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffc107',
+  },
+  warningText: {
+    color: '#856404',
+    fontSize: 14,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 14,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  dateDisplay: {
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#f0f0f0',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
 });

@@ -34,7 +34,7 @@ const SearchLocationInput = ({ onSelect }: { onSelect: (location: any) => void }
       const suggestions = await tripService.getSuggestedLocations({
         locationId: location.location_id,
         radius: 1000,
-        limit: 10
+        limit: 5
       });
 
       console.log('Suggestions received:', suggestions);
