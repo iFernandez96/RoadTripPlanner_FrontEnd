@@ -367,6 +367,18 @@ const AddStops: React.FC = () => {
     router.push('/');
   };
 
+  const resolveSuggestedLocation = async (suggestion: { name: string }) => {
+    try {
+      const res = await tripService.getLocationCoord({ address: suggestion.name });
+      return res?.location;
+    } catch (err) {
+      console.error('Error resolving suggested location:', err);
+      Alert.alert('Error', 'Failed to resolve location details');
+      return null;
+    }
+  };
+  
+
   if (stintFetchAttempted && stintId <= 0) {
     return (
       <SafeAreaView style={styles.container}>
@@ -449,16 +461,18 @@ const AddStops: React.FC = () => {
                         <Text style={styles.label}>Search for Location *</Text>
                         <SearchLocationInput
                           mode="geocode"
-                          onSelect={(location) => {
+                          onSelect={async (suggestion) => {
+                            const resolved = await resolveSuggestedLocation(suggestion);
+                            if (!resolved) return;
+                          
                             setNewStop({
-                              ...newStop,
-                              name: location.address || location.name || '',
-                              notes: `${location.city || ''} ${location.state || ''}`,
-                              latitude: location.latitude,
-                              longitude: location.longitude,
-                              locationId: location.location_id,
+                              name: resolved.address || resolved.name,
+                              latitude: resolved.latitude,
+                              longitude: resolved.longitude,
+                              notes: `${resolved.city || ''}, ${resolved.state || ''}`,
+                              locationId: resolved.location_id,
+                              type: 'pitstop' // or whatever the current UI-selected type is
                             });
-                            //setShowStopsModal(false); // Optional: auto-close modal after selection
                           }}
                         />
                       </View>
