@@ -16,6 +16,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import tripService from '../context/tripService';
 import authService from '../context/authService';
+import SearchLocationInput from './SearchLocationInput';
 
 type StopType = 'pitstop' | 'overnight'| 'gas'| 'food'| 'attraction'| 'other';
 
@@ -147,6 +148,33 @@ const AddStops: React.FC = () => {
 
     checkStint();
   }, [tripId, params.stintId]);
+
+  const [startLocationId, setStartLocationId] = useState<number | null>(null);
+
+
+  useEffect(() => {
+    const resolveStartLocation = async () => {
+      if (!newTrip.start_location.trim()) return;
+  
+      try {
+        const res = await tripService.getLocationCoord({
+          address: newTrip.start_location
+        });
+  
+        const locationId = res?.location?.location_id;
+        if (locationId) {
+          setStartLocationId(locationId);
+          console.log('Resolved startLocationId:', locationId);
+        }
+      } catch (error) {
+        console.error('Error resolving start_location:', error);
+        setStartLocationId(null);
+      }
+    };
+  
+    resolveStartLocation();
+  }, [newTrip.start_location]);
+  
 
   const handleAddTrip = async () => {
     if (isSubmitting) return;
@@ -436,12 +464,17 @@ const AddStops: React.FC = () => {
                       </View>
 
                       <View style={styles.formGroup}>
-                        <Text style={styles.label}>Name *</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={newStop.name}
-                          onChangeText={(text) => setNewStop({...newStop, name: text})}
-                          placeholder="Stop name"
+                        <Text style={styles.label}>Search for Nearby Suggestions</Text>
+                        <SearchLocationInput
+                          onSelect={(resolvedLocation) => {
+                            if (!resolvedLocation) return;
+
+                            setNewStop({
+                              name: resolvedLocation.address || resolvedLocation.name,
+                              type: 'pitstop',
+                              notes: `${resolvedLocation.city || ''}, ${resolvedLocation.state || ''}`
+                            });
+                          }}
                         />
                       </View>
 
