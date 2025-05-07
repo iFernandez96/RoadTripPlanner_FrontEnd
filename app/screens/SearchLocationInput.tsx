@@ -53,6 +53,14 @@ const SearchLocationInput: React.FC<Props> = ({ mode, locationId, onSelect }) =>
         // Add implementation: tripService.discoverNearby(query, locationId)
       } else if (mode === 'suggested') { // Another possible feature
         // Add implementation: tripService.getSuggestedLocations(locationId, query)
+        if (!locationId) {
+            throw new Error('locationId is required for suggested search');
+          }
+          data = await tripService.getSuggestedLocations({
+            locationId,
+            radius: 1000,
+            limit: 10
+          });
       }
 
       setResults(data);
