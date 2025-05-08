@@ -22,7 +22,6 @@ const SearchLocationInput = ({ onSelect }: { onSelect: (location: any) => void }
     setLoading(true);
 
     try {
-      // Step 1: resolve the query to get a stopId (using getLocationCoord)
       const coordRes = await tripService.getLocationCoord({ address: query });
       const location = coordRes?.location;
 
@@ -31,7 +30,6 @@ const SearchLocationInput = ({ onSelect }: { onSelect: (location: any) => void }
         return;
       }
 
-      // Step 2: fetch discover-nearby results using stopId
       const results = await tripService.discoverNearby({
         query,
         locationId: location.location_id,
