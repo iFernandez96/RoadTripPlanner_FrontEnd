@@ -523,7 +523,43 @@ async getVehicles(): Promise<vehicleData[]> {
           throw error;
         }
       }
+
+      async discoverNearby(params: {
+        query: string;
+        stopId?: number;
+        locationId?: number;
+        radius?: number;
+        limit?: number;
+      }): Promise<any[]> {
+        const token = authService.getToken();
       
+        const response = await fetch(`${this.baseUrl}/locations/discover-nearby`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: params.query,
+            stopId: params.stopId,         
+            locationId: params.locationId, 
+            radius: params.radius || 1000, 
+            limit: params.limit || 10      
+          }),
+        });
+      
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error('Backend response:', errText);
+          throw new Error('Failed to fetch nearby locations');
+        }
+      
+        const data = await response.json();
+        return data.locations || [];
+      }
+      
+      
+            
 }
 
 const tripService = new TripService();
