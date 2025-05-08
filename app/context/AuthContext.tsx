@@ -1,61 +1,93 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-import * as Crypto from 'expo-crypto';
+import { Platform } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
+import authService from './authService';
+import { User, JwtPayload, AuthResponse } from './types';
 
-interface DecodedToken {
-  sub: string;
-  email: string;
-  iat?: number;
-  exp?: number;
-}
-
-
-interface User {
-  username: string;
-}
-
-interface StoredUserData {
-  username: string;
-  passwordHash: string;
-  salt: string;
-}
+// Token storage keys
+const ACCESS_TOKEN_KEY = 'accessToken';
+const USER_KEY = 'userData';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isLoggedIn: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, fullname: string, email: string, password: string) => Promise<boolean>;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS_STORAGE_KEY = 'users';
-const CURRENT_USER_KEY = 'currentUser';
-
-const generateSalt = async (): Promise<string> => {
-  // Generate a random 16-byte salt
-  const saltBytes = await Crypto.getRandomBytesAsync(16);
-  // Convert to hex string
-  return Array.from(saltBytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+// Token and user storage functions
+const saveToken = async (token: string): Promise<void> => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    } else {
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, token);
+    }
+  } catch (error) {
+    console.error('Failed to save token:', error);
+  }
 };
 
-const hashPassword = async (password: string, salt: string): Promise<string> => {
-  // Combine password and salt
-  const combined = password + salt;
+const saveUser = async (user: User): Promise<void> => {
+  try {
+    const userData = JSON.stringify(user);
+    if (Platform.OS === 'web') {
+      localStorage.setItem(USER_KEY, userData);
+    } else {
+      await SecureStore.setItemAsync(USER_KEY, userData);
+    }
+  } catch (error) {
+    console.error('Failed to save user data:', error);
+  }
+};
 
-  // Hash with SHA-512
-  const hash = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA512,
-    combined
-  );
+const getStoredToken = async (): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(ACCESS_TOKEN_KEY);
+    } else {
+      return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    }
+  } catch (error) {
+    console.error('Failed to get token:', error);
+    return null;
+  }
+};
 
-  return hash;
+const getStoredUser = async (): Promise<User | null> => {
+  try {
+    let userData: string | null;
+    if (Platform.OS === 'web') {
+      userData = localStorage.getItem(USER_KEY);
+    } else {
+      userData = await SecureStore.getItemAsync(USER_KEY);
+    }
+
+    return userData ? JSON.parse(userData) : null;
+  } catch (error) {
+    console.error('Failed to get user data:', error);
+    return null;
+  }
+};
+
+const removeAuthData = async (): Promise<void> => {
+  try {
+    if (Platform.OS === 'web') {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    } else {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(USER_KEY);
+    }
+  } catch (error) {
+    console.error('Failed to remove auth data:', error);
+  }
 };
 
 interface AuthProviderProps {
@@ -74,105 +106,67 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const loadStoredUsers = async (): Promise<Record<string, StoredUserData>> => {
+  // Parse the JWT token for validation
+  const validateToken = (token: string): boolean => {
     try {
-      const storedUsers = await AsyncStorage.getItem(USERS_STORAGE_KEY);
-      return storedUsers ? JSON.parse(storedUsers) : {};
-    } catch (error) {
-      console.error('Failed to load stored users:', error);
-      return {};
-    }
-  };
+      const decoded = jwtDecode<JwtPayload>(token);
+      const currentTime = Math.floor(Date.now() / 1000);
 
-  const saveUsers = async (users: Record<string, StoredUserData>): Promise<void> => {
-    try {
-      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    } catch (error) {
-      console.error('Failed to save users:', error);
-    }
-  };
-
-  // Check if user is already logged in on app start
-  useEffect(() => {
-    const loadStoredAuth = async (): Promise<void> => {
-    try {
-      let token: string | null = null;
-  
-      // Get token depending on platform
-      if (typeof window !== 'undefined') {
-        token = localStorage.getItem('userToken');
-      } else {
-        token = await SecureStore.getItemAsync('userToken');
-      }
-  
-      if (token) {
-        try {
-          const decoded: DecodedToken = jwtDecode(token);
-
-          // Expiration check for token Web and Mobile
-          const now = Math.floor(Date.now()/1000);
-          if(decoded.exp && decoded.exp < now) {
-            console.warn('Token expired');
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('userToken');
-            } else {
-              await SecureStore.deleteItemAsync('userToken');
-            }
-            return;
-          }
-          if (decoded?.email) {
-            const userData: User = { username: decoded.email };
-            setUser(userData);
-            return;
-          }
-        } catch (err) {
-          console.error('Failed to decode token:', err);
-        }
-      }
-  
-      // Fallback to legacy login
-      const storedUser = await AsyncStorage.getItem(CURRENT_USER_KEY);
-      if (storedUser) {
-        const userData: User = JSON.parse(storedUser);
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error('Failed to load auth info:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-   
-
-    loadStoredAuth();
-  }, []);
-
-  const login = async (username: string, password: string): Promise<boolean> => {
-    try {
-      // Get stored users
-      const users = await loadStoredUsers();
-      const userRecord = users[username];
-
-      if (!userRecord) {
+      if (decoded.expirationTimestamp < currentTime) {
+        console.log('Token expired');
         return false;
       }
 
-      // Hash the provided password with the stored salt
-      const passwordHash = await hashPassword(password, userRecord.salt);
-      const passwordMatch = passwordHash === userRecord.passwordHash;
+      return true;
+    } catch (error) {
+      console.error('Failed to parse token:', error);
+      return false;
+    }
+  };
 
-      if (passwordMatch) {
-        // Create user object without the password hash
-        const userData: User = { username };
+  // Load user from stored token and user data on app start
+  useEffect(() => {
+    const loadUser = async (): Promise<void> => {
+      try {
+        const token = await getStoredToken();
+        const storedUser = await getStoredUser();
 
-        setUser(userData);
+        if (token && storedUser && validateToken(token)) {
+          // Sync the token with authService
+          authService.setToken(token);
+          setUser(storedUser);
+        } else {
+          // Token invalid, expired or user data missing
+          await removeAuthData();
+          authService.logout();
+        }
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
+    loadUser();
+  }, []);
 
-        return true;
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await authService.login(email, password);
+
+      if (!response || !response.access_token || !response.user) {
+        return false;
       }
 
-      return false;
+      if (!validateToken(response.access_token)) {
+        return false;
+      }
+
+      setUser(response.user);
+      await saveToken(response.access_token);
+      await saveUser(response.user);
+
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       return false;
@@ -180,39 +174,26 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   };
 
   const logout = async (): Promise<void> => {
+    authService.logout();
     setUser(null);
-    await AsyncStorage.removeItem(CURRENT_USER_KEY);
+    await removeAuthData();
   };
 
-  const register = async (username: string, password: string): Promise<boolean> => {
+  const register = async (username: string, fullname: string, email: string, password: string): Promise<boolean> => {
     try {
-      if (!username || !password || password.length < 6) {
+      const response = await authService.register(username, fullname, email, password);
+
+      if (!response || !response.access_token || !response.user) {
         return false;
       }
 
-      const users = await loadStoredUsers();
-
-      if (users[username]) {
+      if (!validateToken(response.access_token)) {
         return false;
       }
 
-      const salt = await generateSalt();
-
-      const passwordHash = await hashPassword(password, salt);
-
-      const newUser: StoredUserData = {
-        username,
-        passwordHash,
-        salt
-      };
-
-      users[username] = newUser;
-      await saveUsers(users);
-
-      const userData: User = { username };
-
-      setUser(userData);
-      await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
+      setUser(response.user);
+      await saveToken(response.access_token);
+      await saveUser(response.user);
 
       return true;
     } catch (error) {
@@ -221,13 +202,22 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
+  const getToken = async (): Promise<string | null> => {
+    const token = await getStoredToken();
+    if (token) {
+      authService.setToken(token);
+    }
+    return token;
+  };
+
   const value: AuthContextType = {
     user,
     isLoading,
+    isLoggedIn: !!user,
     login,
     logout,
     register,
-    isLoggedIn: !!user,
+    getToken
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
