@@ -169,10 +169,11 @@ const AdditionsTrip: React.FC = () => {
   };
 
   const handleAddSupplyToTrip = async (tripId: number, quantity: number, notes: string, name: string, category: SupplyCategory) => {
+    const q = parseInt(quantity);
     try {
       const supplyData = {
         trip_id: tripId,
-        quantity: quantity,
+        quantity: q,
         notes: notes,
         new_supply: {
           name: name,
