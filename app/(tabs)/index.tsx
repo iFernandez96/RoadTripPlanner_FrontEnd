@@ -141,7 +141,21 @@ export default function RoadTripPlannerApp() {
       params: { tripId: tripId.toString() }
     });
   };
+ const DeleteTrip = async(tripId: number) => {
+     try {
 
+           if (!isLoading) {
+             setIsLoading(true);
+           }
+            await tripService.DeleteTripByID(tripId);
+
+         } catch (err) {
+           console.error('Failed to delete trip :', err);
+           setError('Failed to delete trip. Please try again later.');
+         } finally {
+           setIsLoading(false);
+handleRefresh();         }
+  };
   const renderTrip = ({ item }: { item: Trip }) => (
     <View style={styles.listItem} key={item.trip_id.toString()}>
       <TouchableOpacity
@@ -191,6 +205,12 @@ export default function RoadTripPlannerApp() {
           >
             <Text style={styles.optionButtonText}>Add Supplies/Participants</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+                      style={[styles.optionButton, styles.addSuppliesOption]}
+                      onPress={() => DeleteTrip( item.trip_id)}
+                    >
+                      <Text style={styles.optionButtonText}>Delete Trip</Text>
+                    </TouchableOpacity>
         </View>
       )}
     </View>

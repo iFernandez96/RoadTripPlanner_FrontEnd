@@ -485,6 +485,32 @@ async getVehicles(): Promise<vehicleData[]> {
           throw error;
         }
       }
+  async getMe(): Promise<Me[]> {
+          try {
+      const token = authService.getToken();
+
+            if (!token) {
+              throw new Error('Authentication required. Please log in first.');
+            }
+
+            const response = await fetch(`${this.baseUrl}/users/me`, {
+             headers: {
+                         'Authorization': `Bearer ${token}`
+                       }
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || 'Failed to fetch me');
+            }
+
+            const Me = await response.json();
+            return Me;
+          } catch (error) {
+            console.error('Error  me:', error);
+            throw error;
+          }
+        }
       async getSuggestedLocations(params: {
         lat?: number;
         lng?: number;
@@ -523,7 +549,59 @@ async getVehicles(): Promise<vehicleData[]> {
           throw error;
         }
       }
-      
+      async DeleteTripByID(tripId: number): Promise<TripDeletion> {
+          try {
+        const token = authService.getToken();
+
+            if (!token) {
+              throw new Error('Authentication required. Please log in first.');
+            }
+
+            const response = await fetch(`${this.baseUrl}/trips/${tripId}`, {
+              method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${token}`
+                    }
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to delete trip');
+            }
+
+            return await response;
+          } catch (error) {
+            console.error(`Error in delete trip : (${tripId}):`, error);
+            throw error;
+          }
+        }
+    async UpdateUserByID(userId: number,userData:userData): Promise<UserUpdate> {
+              try {
+            const token = authService.getToken();
+
+                if (!token) {
+                  throw new Error('Authentication required. Please log in first.');
+                }
+
+                const response = await fetch(`${this.baseUrl}/users/${userId}`, {
+                  method: 'PATCH',
+                                     headers: {
+                                       'Content-Type': 'application/json',
+                                       'Authorization': `Bearer ${token}`
+                                     },
+                                     body: JSON.stringify(userData),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.message || 'Failed to update user');
+                }
+
+                return await response.json();
+              } catch (error) {
+                console.error(`Error in delete trip : (${userId}):`, error);
+                throw error;
+              }
+            }
 }
 
 const tripService = new TripService();

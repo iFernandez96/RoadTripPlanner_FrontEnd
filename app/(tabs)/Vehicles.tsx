@@ -226,6 +226,8 @@ export default function RoadTripPlannerApp() {
       console.error('Error assigning vehicle to stint:', error);
       Alert.alert("Error", "Failed to assign vehicle to stint. Try again later.");
     }finally{
+    setAssignTripModalVisible(false);
+
         router.push('/(tabs)/Vehicles')}
   };
 
