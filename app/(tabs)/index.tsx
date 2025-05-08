@@ -50,9 +50,8 @@ export default function RoadTripPlannerApp() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [expandedTripId, setExpandedTripId] = useState<number | null>(null);
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, getToken } = useAuth();
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [newTrip, setNewTrip] = useState<NewTrip>({
     title: '',
@@ -70,7 +69,8 @@ export default function RoadTripPlannerApp() {
   useEffect(() => {
     if (tripIds.length > 0) {
       fetchTrips();
-    } else if (!isLoading) {
+    } else {
+      setIsLoading(false);
       setTrips([]);
     }
   }, [tripIds]);
@@ -80,8 +80,21 @@ export default function RoadTripPlannerApp() {
       setIsLoading(true);
       setError(null);
 
+      const token = await getToken();
+      if (!token) {
+        console.log('No auth token available');
+        setError('Authentication required. Please log in again.');
+        setIsLoading(false);
+        return;
+      }
+
       const fetchedTripIds = await tripService.getUsersTripsId();
+      console.log('Fetched trip IDs:', fetchedTripIds);
       setTripIds(fetchedTripIds);
+
+      if (fetchedTripIds.length === 0) {
+        setIsLoading(false);
+      }
     } catch (err) {
       console.error('Failed to fetch trip IDs:', err);
       setError('Failed to load trips. Please try again later.');
@@ -91,10 +104,14 @@ export default function RoadTripPlannerApp() {
 
   const fetchTrips = async () => {
     try {
-      setIsLoading(true);
       setError(null);
 
+      if (!isLoading) {
+        setIsLoading(true);
+      }
+
       const fetchedTrips = await tripService.getMultipleTrips(tripIds);
+      console.log('Fetched trips:', fetchedTrips);
       setTrips(fetchedTrips);
     } catch (err) {
       console.error('Failed to fetch trip details:', err);
@@ -104,8 +121,13 @@ export default function RoadTripPlannerApp() {
     }
   };
 
-  const handleLogout = (): void => {
-    logout();
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await logout();
+      // Router navigation handled by AuthContext
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const toggleTripOptions = (tripId: number) => {
@@ -115,12 +137,12 @@ export default function RoadTripPlannerApp() {
   const navigateToScreen = (screenPath: string, tripId: number) => {
     router.push({
       pathname: screenPath,
-      params: { tripId: tripId }
+      params: { tripId: tripId.toString() }
     });
   };
 
   const renderTrip = ({ item }: { item: Trip }) => (
-    <View style={styles.listItem}>
+    <View style={styles.listItem} key={item.trip_id.toString()}>
       <TouchableOpacity
         style={styles.tripHeader}
         onPress={() => toggleTripOptions(item.trip_id)}
@@ -130,8 +152,12 @@ export default function RoadTripPlannerApp() {
           <Text style={styles.tripDescription}>{item.description}</Text>
         )}
         <View style={styles.tripInfoRow}>
-          <Text style={styles.tripDates}>{item.start_date} → {item.end_date}</Text>
-          <Text style={styles.tripLocations}>{item.start_location} → {item.end_location}</Text>
+          <Text style={styles.tripDates}>
+            {item.start_date} → {item.end_date || item.start_date}
+          </Text>
+          <Text style={styles.tripLocations}>
+            {item.start_location || 'N/A'} → {item.end_location || 'N/A'}
+          </Text>
         </View>
       </TouchableOpacity>
 
@@ -139,7 +165,7 @@ export default function RoadTripPlannerApp() {
         <View style={styles.tripOptionsContainer}>
           <TouchableOpacity
             style={[styles.optionButton, styles.viewDetailsOption]}
-            onPress={() => navigateToScreen('/screens/viewTrip',item.trip_id)}
+            onPress={() => navigateToScreen('/screens/viewTrip', item.trip_id)}
           >
             <Text style={styles.optionButtonText}>View Trip Details</Text>
           </TouchableOpacity>
@@ -183,6 +209,13 @@ export default function RoadTripPlannerApp() {
       return false;
     }
 
+    // Validate date format (YYYY-MM-DD)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(newTrip.start_date)) {
+      Alert.alert('Validation Error', 'Please enter a valid date in YYYY-MM-DD format');
+      return false;
+    }
+
     return true;
   };
 
@@ -194,8 +227,14 @@ export default function RoadTripPlannerApp() {
     }
 
     try {
-      setIsLoading(true);
       setIsSubmitting(true);
+
+      const token = await getToken();
+      if (!token) {
+        Alert.alert('Error', 'Your session has expired. Please log in again.');
+        setIsSubmitting(false);
+        return;
+      }
 
       const tripData = {
         title: newTrip.title,
@@ -207,7 +246,6 @@ export default function RoadTripPlannerApp() {
 
       console.log('Sending trip data to API:', JSON.stringify(tripData, null, 2));
       const result = await tripService.createTrip(tripData);
-      const tripId = result.trip_id;
       console.log('Trip created successfully:', result);
 
       setNewTrip({
@@ -226,7 +264,6 @@ export default function RoadTripPlannerApp() {
       console.error('Error creating trip:', error);
       Alert.alert('Error', `Failed to create trip: ${error.message}`);
     } finally {
-      setIsLoading(false);
       setIsSubmitting(false);
     }
   };
@@ -247,15 +284,13 @@ export default function RoadTripPlannerApp() {
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>My Trips</Text>
         <View style={styles.headerButtonContainer}>
-          {error && (
-            <TouchableOpacity
-              style={[styles.button, styles.refreshButton]}
-              onPress={handleRefresh}
-              disabled={isLoading}
-            >
-              <Text style={styles.buttonText}>Refresh</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={[styles.button, styles.refreshButton]}
+            onPress={handleRefresh}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>Refresh</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.button}
             onPress={handleCreateTrip}
@@ -279,7 +314,7 @@ export default function RoadTripPlannerApp() {
         <View style={styles.listContainer}>
           <FlatList
             data={trips}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.trip_id.toString()}
             renderItem={renderTrip}
             scrollEnabled={false}
           />

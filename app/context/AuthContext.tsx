@@ -2,30 +2,12 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { jwtDecode } from 'jwt-decode';
+import authService from './authService';
+import { User, JwtPayload, AuthResponse } from './types';
 
-const API_URL = 'https://roadtrip-planner-api-ddd2dd6834e8.herokuapp.com/';
-
-// Updated User interface to match backend response
-interface User {
-  username: string;
-  email: string;
-  fullname?: string;
-  id?: string; // Optional because it might come from JWT instead
-}
-
-interface JwtPayload {
-  userId?: string; // 'sub' field in JWT
-  email: string;
-  issuedAtTimestamp: number; // 'iat' field in JWT
-  expirationTimestamp: number; // 'exp' field in JWT
-}
-
-// Updated API response interfaces to match backend
-interface AuthResponse {
-  message: string;
-  access_token: string;
-  user: User;
-}
+// Token storage keys
+const ACCESS_TOKEN_KEY = 'accessToken';
+const USER_KEY = 'userData';
 
 interface AuthContextType {
   user: User | null;
@@ -38,50 +20,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Token storage keys
-const ACCESS_TOKEN_KEY = 'accessToken';
-// Add user storage key
-const USER_KEY = 'userData';
-
-// Remove the hashPassword function since we'll send raw passwords to the server
-
-const authApi = {
-  login: async (email: string, password: string): Promise<AuthResponse | null> => {
-    try {
-      const requestBody = { email, password };
-      console.log('Login request payload:', requestBody);
-      const response = await fetch(`${API_URL}auth/loginPlain`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
-      console.log('Login response:', response);
-
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error('API login error:', error);
-      return null;
-    }
-  },
-
-  register: async (username: string, fullname: string, email: string, password: string): Promise<AuthResponse | null> => {
-    try {
-      const response = await fetch(`${API_URL}auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, fullname, email, password }),
-      });
-
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (error) {
-      console.error('API register error:', error);
-      return null;
-    }
-  }
-};
 
 // Token and user storage functions
 const saveToken = async (token: string): Promise<void> => {
@@ -168,15 +106,13 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Parse the JWT token for validation and possibly additional user data
+  // Parse the JWT token for validation
   const validateToken = (token: string): boolean => {
     try {
-      // Use jwt-decode library to decode the JWT
       const decoded = jwtDecode<JwtPayload>(token);
-
-      // Check if token is expired
       const currentTime = Math.floor(Date.now() / 1000);
-      if (decoded.exp < currentTime) {
+
+      if (decoded.expirationTimestamp < currentTime) {
         console.log('Token expired');
         return false;
       }
@@ -196,10 +132,13 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         const storedUser = await getStoredUser();
 
         if (token && storedUser && validateToken(token)) {
+          // Sync the token with authService
+          authService.setToken(token);
           setUser(storedUser);
         } else {
           // Token invalid, expired or user data missing
           await removeAuthData();
+          authService.logout();
         }
       } catch (error) {
         console.error('Failed to load user:', error);
@@ -213,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await authApi.login(email, password);
+      const response = await authService.login(email, password);
 
       if (!response || !response.access_token || !response.user) {
         return false;
@@ -234,17 +173,15 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
-  // Logout function
   const logout = async (): Promise<void> => {
+    authService.logout();
     setUser(null);
     await removeAuthData();
   };
 
   const register = async (username: string, fullname: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await authApi.register(username, fullname, email, password);
-
-      console.log('Register response:', response);
+      const response = await authService.register(username, fullname, email, password);
 
       if (!response || !response.access_token || !response.user) {
         return false;
@@ -265,18 +202,21 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     }
   };
 
-  // Get current token
   const getToken = async (): Promise<string | null> => {
-    return await getStoredToken();
+    const token = await getStoredToken();
+    if (token) {
+      authService.setToken(token);
+    }
+    return token;
   };
 
   const value: AuthContextType = {
     user,
     isLoading,
+    isLoggedIn: !!user,
     login,
     logout,
     register,
-    isLoggedIn: !!user,
     getToken
   };
 
